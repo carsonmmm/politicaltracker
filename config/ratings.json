@@ -1,0 +1,4 @@
+{
+  "_note": "Expert race ratings are dated snapshots, entered by hand. Each entry: { raceId, outlet, rating, date, source_url }. Ratings: 'Solid D','Likely D','Lean D','Toss-up','Lean R','Likely R','Solid R' (also 'Tilt D/R'). This file ships EMPTY: no ratings were fetched in this build. Add them here or in the admin panel.",
+  "entries": []
+}

@@ -1,0 +1,12 @@
+{
+  "_note": "Special election formats by state. 'rcv' = ranked-choice general election; 'topTwo' = top-two/top-four primary system so two general candidates can share a party; 'majorityRequired' = a candidate needs 50%+ or the race goes to a runoff. Builder-compiled, unverified; correct in admin. Runoff dates are left null until entered from an official source.",
+  "verified": false,
+  "source": "Builder-compiled (unverified)",
+  "states": {
+    "AK": { "rcv": true, "offices": ["S", "H", "G"], "note": "Top-four primary, ranked-choice general." },
+    "ME": { "rcv": true, "offices": ["S", "H"], "note": "Ranked-choice general for federal offices only." },
+    "CA": { "topTwo": true, "offices": ["S", "H", "G"] },
+    "WA": { "topTwo": true, "offices": ["S", "H", "G"] },
+    "GA": { "majorityRequired": true, "offices": ["S", "H", "G"], "runoffDate": null, "note": "General-election runoff if no candidate exceeds 50%." }
+  }
+}

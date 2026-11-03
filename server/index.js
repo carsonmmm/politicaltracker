@@ -1,0 +1,199 @@
+import http from 'node:http';
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import { Engine, RATINGS } from './engine.js';
+import { startScheduler } from './scheduler.js';
+import { probeAll } from './probe.js';
+import { ROOT, nowIso } from './lib/util.js';
+import { STATUSES } from './adapters/results.js';
+import { partyFromLabel } from './lib/match.js';
+import { store } from './store.js';
+
+const PORT = Number(process.env.PORT || 8080);
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN || crypto.randomBytes(9).toString('base64url');
+
+const engine = new Engine();
+let lastProbe = store.load('probe.json', null);
+
+const STATIC = {
+  '/vendor/topojson-client.min.js': path.join(ROOT, 'node_modules/topojson-client/dist/topojson-client.min.js'),
+  '/geo/states.json': path.join(ROOT, 'node_modules/us-atlas/states-albers-10m.json'),
+  '/geo/counties.json': path.join(ROOT, 'node_modules/us-atlas/counties-albers-10m.json'),
+};
+const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.json': 'application/json', '.svg': 'image/svg+xml' };
+
+function send(res, code, body, headers = {}) {
+  const isStr = typeof body === 'string';
+  res.writeHead(code, { 'Content-Type': isStr ? 'text/plain; charset=utf-8' : 'application/json', 'Cache-Control': 'no-store', ...headers });
+  res.end(isStr ? body : JSON.stringify(body));
+}
+
+async function readBody(req) {
+  let data = '';
+  for await (const chunk of req) {
+    data += chunk;
+    if (data.length > 2_000_000) throw new Error('body too large');
+  }
+  return data ? JSON.parse(data) : {};
+}
+
+function serveFile(res, file, cache = 'no-cache') {
+  fs.readFile(file, (err, buf) => {
+    if (err) return send(res, 404, 'Not found');
+    res.writeHead(200, { 'Content-Type': MIME[path.extname(file)] || 'application/octet-stream', 'Cache-Control': cache });
+    res.end(buf);
+  });
+}
+
+const sseClients = new Set();
+engine.onChange(({ version, reason }) => {
+  for (const res of sseClients) res.write(`event: update\ndata: ${JSON.stringify({ version, reason })}\n\n`);
+});
+setInterval(() => {
+  for (const res of sseClients) res.write(': ping\n\n');
+}, 25_000);
+
+// ---------- admin helpers ----------
+const err400 = (msg) => Object.assign(new Error(msg), { code: 400 });
+const need = (cond, msg) => {
+  if (!cond) throw err400(msg);
+};
+const isUrl = (u) => /^https?:\/\/\S+$/.test(u || '');
+
+const admin = {
+  result(b) {
+    need(engine.byId.has(b.raceId), 'Unknown raceId');
+    need(STATUSES.includes(b.status), `status must be one of ${STATUSES.join(', ')}`);
+    need(Array.isArray(b.candidates) && b.candidates.every((c) => c.name && Number.isFinite(Number(c.votes ?? 0))), 'candidates: [{name, party, votes}]');
+    need(b.source && isUrl(b.source_url), 'A result needs where it came from: source and source_url');
+    let call = null;
+    if (b.status === 'called') {
+      need(b.call?.winner && b.call?.calledBy, 'A call needs the winner and the outlet that called it (AP, Decision Desk HQ, or a network decision desk)');
+      call = { winner: b.call.winner, party: b.call.party || b.candidates.find((c) => c.name === b.call.winner)?.party || null, calledBy: b.call.calledBy, calledAt: b.call.calledAt || nowIso(), source_url: b.call.source_url || b.source_url };
+    }
+    engine.manual.results[b.raceId] = {
+      raceId: b.raceId,
+      source: 'Manual',
+      manual: true,
+      manual_source: b.source,
+      source_url: b.source_url,
+      fetched_at: nowIso(),
+      kind: b.kind === 'certified' ? 'certified' : 'unofficial',
+      status: b.status,
+      pctExpected: b.pctExpected === '' || b.pctExpected == null ? null : Number(b.pctExpected),
+      call,
+      candidates: b.candidates.map((c) => ({ name: c.name, party: c.party || partyFromLabel(c.name) || 'O', votes: Number(c.votes || 0), incumbent: Boolean(c.incumbent) })),
+      counties: [],
+      rcvRounds: Array.isArray(b.rcvRounds) ? b.rcvRounds : [],
+      outstanding_note: b.outstanding_note || null,
+    };
+  },
+  candidate(b) {
+    need(engine.byId.has(b.raceId), 'Unknown raceId');
+    need(b.name && ['D', 'R', 'O', 'I', 'L', 'G'].includes(b.party), 'name and party (D, R, I, L, G, O) required');
+    need(isUrl(b.source_url), 'source_url required');
+    const list = (engine.manual.candidates[b.raceId] ||= []);
+    const row = { name: b.name, party: b.party === 'I' || b.party === 'L' || b.party === 'G' ? 'O' : b.party, party_label: b.party, incumbent: Boolean(b.incumbent), source: b.source || 'Manual', source_url: b.source_url, entered_at: nowIso() };
+    const i = list.findIndex((c) => c.name.toLowerCase() === b.name.toLowerCase());
+    if (i >= 0) list[i] = row;
+    else list.push(row);
+  },
+  rating(b) {
+    need(engine.byId.has(b.raceId), 'Unknown raceId');
+    need(RATINGS.includes(b.rating), `rating must be one of ${RATINGS.join(', ')}`);
+    need(b.outlet && /^\d{4}-\d{2}-\d{2}$/.test(b.date || '') && isUrl(b.source_url), 'outlet, date (YYYY-MM-DD) and source_url required');
+    engine.manual.ratings.push({ raceId: b.raceId, outlet: b.outlet, rating: b.rating, date: b.date, source_url: b.source_url, entered_at: nowIso() });
+  },
+  poll(b) {
+    need(engine.byId.has(b.raceId), 'Unknown raceId');
+    need(b.average && /^\d{4}-\d{2}-\d{2}$/.test(b.date || '') && isUrl(b.source_url) && Array.isArray(b.values), 'average (whose average), date, source_url and values [{name, pct}] required');
+    engine.manual.polls.push({ raceId: b.raceId, average: b.average, date: b.date, source_url: b.source_url, values: b.values.map((v) => ({ name: v.name, pct: Number(v.pct) })), entered_at: nowIso() });
+  },
+  note(b) {
+    need(engine.byId.has(b.raceId), 'Unknown raceId');
+    engine.manual.notes[b.raceId] = b.text ? { text: String(b.text).slice(0, 2000), source_url: b.source_url || null, entered_at: nowIso() } : undefined;
+  },
+  'market-map'(b) {
+    need(/^(kalshi|polymarket):/.test(b.key || ''), 'key like kalshi:<event_ticker> or polymarket:<slug>');
+    need(b.raceId === null || engine.byId.has(b.raceId) || /^CONTROL-(S|H)$/.test(b.raceId), 'raceId must be a race, CONTROL-S, CONTROL-H, or null to ignore');
+    engine.manual.marketMap[b.key] = b.raceId;
+  },
+  chamber(b) {
+    need(b.senate && b.house && b.governors, 'senate, house and governors required');
+    engine.manual.chamber = { ...b, verified: Boolean(b.verified), source: b.source || 'Manual', entered_at: nowIso() };
+  },
+  'poll-closing'(b) {
+    need(b.state && /^\d{2}:\d{2}(\+1)?$/.test(b.first || '') && /^\d{2}:\d{2}(\+1)?$/.test(b.last || ''), 'state, first, last (HH:MM ET, +1 for next day)');
+    engine.manual.pollClosing ||= { states: {} };
+    engine.manual.pollClosing.states[b.state] = { first: b.first, last: b.last, source_url: b.source_url || null, manual: true };
+  },
+  delete(b) {
+    const { kind, raceId, index } = b;
+    if (kind === 'result') delete engine.manual.results[raceId];
+    else if (kind === 'candidate') engine.manual.candidates[raceId]?.splice(index, 1);
+    else if (kind === 'rating' || kind === 'poll') {
+      const arr = engine.manual[kind === 'rating' ? 'ratings' : 'polls'];
+      const own = arr.map((r, i) => [r, i]).filter(([r]) => r.raceId === raceId);
+      if (own[index]) arr.splice(own[index][1], 1);
+    } else throw err400('unknown kind');
+  },
+};
+
+// ---------- router ----------
+const server = http.createServer(async (req, res) => {
+  const url = new URL(req.url, 'http://x');
+  const p = url.pathname;
+  try {
+    if (p === '/api/state') return send(res, 200, engine.state());
+    if (p.startsWith('/api/race/')) {
+      const d = engine.raceDetail(decodeURIComponent(p.slice(10)));
+      return d ? send(res, 200, d) : send(res, 404, { error: 'unknown race' });
+    }
+    if (p === '/api/control') {
+      return send(res, 200, { 'CONTROL-S': { ...engine.oddsView('CONTROL-S'), history: engine.oddsHistory.get('CONTROL-S') || [] }, 'CONTROL-H': { ...engine.oddsView('CONTROL-H'), history: engine.oddsHistory.get('CONTROL-H') || [] } });
+    }
+    if (p === '/api/events') {
+      res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-store', Connection: 'keep-alive' });
+      res.write(`event: hello\ndata: ${JSON.stringify({ version: engine.version })}\n\n`);
+      sseClients.add(res);
+      req.on('close', () => sseClients.delete(res));
+      return;
+    }
+    if (p === '/api/sources') return send(res, 200, { probe: lastProbe, feeds: engine.feeds });
+    if (p === '/api/probe' && req.method === 'POST') {
+      lastProbe = { ran_at: nowIso(), rows: await probeAll() };
+      store.save('probe.json', lastProbe);
+      return send(res, 200, lastProbe);
+    }
+    if (p.startsWith('/api/admin/')) {
+      if (req.headers['x-admin-token'] !== ADMIN_TOKEN) return send(res, 401, { error: 'Admin token required' });
+      const action = p.slice(11);
+      if (action === 'check') return send(res, 200, { ok: true });
+      if (action === 'manual') return send(res, 200, engine.manual);
+      if (action === 'unmatched') return send(res, 200, engine.unmatched);
+      if (req.method !== 'POST' || !admin[action]) return send(res, 404, { error: 'unknown admin action' });
+      const body = await readBody(req);
+      admin[action](body);
+      engine.saveManual();
+      return send(res, 200, { ok: true });
+    }
+    if (STATIC[p]) return serveFile(res, STATIC[p], 'public, max-age=86400');
+    const file = path.join(ROOT, 'public', p === '/' ? 'index.html' : path.normalize(p).replace(/^(\.\.[/\\])+/, ''));
+    if (file.startsWith(path.join(ROOT, 'public')) && fs.existsSync(file) && fs.statSync(file).isFile()) return serveFile(res, file);
+    return send(res, 404, 'Not found');
+  } catch (err) {
+    return send(res, err.code === 400 ? 400 : 500, { error: err.message });
+  }
+});
+
+server.listen(PORT, () => {
+  console.log(`Midterm Live on http://localhost:${PORT}`);
+  console.log(`Admin token: ${ADMIN_TOKEN}${process.env.ADMIN_TOKEN ? ' (from ADMIN_TOKEN)' : ' (random; set ADMIN_TOKEN to fix it)'}`);
+  if (!process.env.NO_POLL) startScheduler(engine);
+  probeAll().then((rows) => {
+    lastProbe = { ran_at: nowIso(), rows };
+    store.save('probe.json', lastProbe);
+    for (const r of rows) console.log(`  [probe] ${r.result.padEnd(11)} ${r.name}`);
+  });
+});

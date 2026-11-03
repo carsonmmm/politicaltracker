@@ -1,0 +1,4 @@
+{
+  "_note": "Manual mapping of market IDs to race IDs, used when automatic title matching fails or is wrong. Keys are 'kalshi:<event_ticker>' or 'polymarket:<event_slug>'. Value is a race ID like 'S-GA', 'G-PA', 'H-CA-13', 'CONTROL-S', 'CONTROL-H', or null to ignore a market.",
+  "map": {}
+}

@@ -1,0 +1,68 @@
+# Midterm Live
+
+Live tracker for the November 3, 2026 U.S. midterms: vote counts, Kalshi and Polymarket odds, balance of power, and race context. Every number carries `source`, `source_url` and `fetched_at`. Nothing is estimated or made up; missing data shows "Not available" and the reason.
+
+## Run it
+
+```bash
+npm install
+ADMIN_TOKEN=pick-a-secret npm start      # http://localhost:8080
+npm run probe                            # which data sources this machine can reach
+npm test
+```
+
+Needs Node 20 or newer. The two runtime dependencies are the map shapes (`us-atlas`, `topojson-client`).
+
+### Optional keys (environment variables)
+
+| Variable | What it turns on |
+|---|---|
+| `AP_API_KEY` | AP Elections API: live vote counts and AP race calls (paid) |
+| `FEC_API_KEY` | OpenFEC, Phase 3 (free from api.data.gov; `DEMO_KEY` used otherwise) |
+| `CONGRESS_API_KEY` | Congress.gov, Phase 4 (free api.data.gov key) |
+| `ADMIN_TOKEN` | Fixed admin password (otherwise a random one is printed at startup) |
+| `PORT`, `DATA_DIR` | Port (8080) and where runtime data is kept (`data/runtime/`) |
+| `LOW_VOLUME_USD`, `LOW_VOLUME_CONTRACTS` | Markets below these volumes are flagged as unreliable (50,000 each) |
+
+## How it works
+
+```
+ Kalshi ─┐                      ┌─ /api/state  (dashboard, lists)
+ Polymarket ─┤  adapters  ──►  engine  ──┤  /api/race/:id
+ AP / DDHQ ─┤  (one per source,  (merge, tiers,  ├─ /api/events (SSE push)
+ Results file ─┤   shared format)  history, calls) └─ /api/admin/* (manual entry)
+ Manual (admin) ─┘
+```
+
+* **Server-side fetching.** A small Node server polls every source, so browser CORS rules never block the app.
+* **Adapters** (`server/adapters/`) turn each source into one shared format (see `docs/DATA.md`). Swapping a free source for a paid one only means writing a new adapter.
+* **Results priority:** Manual > AP > Decision Desk HQ > state office > research file. When two sources disagree, the race page shows both.
+* **Refresh:** odds every 60 s and results every 45 s on election night (Nov 3–5), then every 15 min and 10 min. Data older than 1.5× its interval is labelled **Stale**.
+* **Fallbacks:** the last odds and results snapshot is saved to disk and shown, labelled stale, if a feed goes down.
+* **History:** every odds and vote-count change is appended to `data/runtime/history/*.jsonl` for trend lines. Odds from before the server started are backfilled from Kalshi candlesticks and Polymarket price history.
+* **Tiers:** Tier 1 if any entered rating is Toss-up/Lean/Tilt or the market average is 15–85%. Tier 2 if rated Likely. A race moves up to Tier 1 on the night if the margin is under 5 points with at least 25% of the expected vote counted.
+
+## Files you edit
+
+| File | Purpose | Ships as |
+|---|---|---|
+| `data/results-research.json` | Fallback results refreshed by research (see `docs/DATA.md`) | empty |
+| `config/ratings.json` | Dated expert ratings | empty |
+| `config/market-map.json` | Force a market onto a race, or ignore it | empty |
+| `config/chamber.json` | Seats not up in 2026 | **unverified**, builder-compiled |
+| `config/poll-closing.json` | Poll closing times (ET) | **unverified**, builder-compiled |
+| `config/race-formats.json` | Ranked-choice, top-two and runoff rules | **unverified**, builder-compiled |
+
+Everything can also be entered or corrected in the **Admin** page, where entries are labelled Manual.
+
+## Testing without network access
+
+`test/mock-upstream.js` is a fake Kalshi/Polymarket/AP server with obviously fake candidates ("Test Candidate-A"). It exists only to exercise the pipeline:
+
+```bash
+node test/mock-upstream.js &
+DATA_DIR=/tmp/mock KALSHI_BASE=http://localhost:9090/kalshi POLYMARKET_BASE=http://localhost:9090/poly \
+POLYMARKET_CLOB=http://localhost:9090/clob AP_BASE=http://localhost:9090/ap AP_API_KEY=fake npm start
+```
+
+Never point a real deployment at it.

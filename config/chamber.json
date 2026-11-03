@@ -1,0 +1,20 @@
+{
+  "_note": "Seats NOT on the 2026 ballot, by party. Compiled by the builder from the chamber composition known as of mid-2026; it has not been checked against a live source in this build. Verify and correct in the admin panel (Admin > Chamber baseline) before relying on it.",
+  "verified": false,
+  "source": "Builder-compiled (unverified)",
+  "source_url": "https://www.senate.gov/senators/index.htm",
+  "senate": {
+    "total": 100,
+    "majority": 51,
+    "tiebreak": { "party": "R", "note": "Vice President (R) breaks 50-50 ties, so Republicans control at 50 seats." },
+    "not_up": { "D": 34, "R": 31, "I": 0 },
+    "not_up_note": "D column includes independents who caucus with Democrats."
+  },
+  "house": { "total": 435, "majority": 218, "not_up": { "D": 0, "R": 0, "I": 0 } },
+  "governors": {
+    "total": 50,
+    "majority": 26,
+    "not_up": { "D": 6, "R": 8, "I": 0 },
+    "source_url": "https://www.nga.org/governors/"
+  }
+}

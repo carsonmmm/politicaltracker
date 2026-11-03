@@ -1,0 +1,17 @@
+{
+  "name": "midterm-live",
+  "version": "0.1.0",
+  "description": "Live tracker for the November 3, 2026 U.S. midterm elections",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "node server/index.js",
+    "probe": "node server/probe.js",
+    "test": "node --test test/*.test.js"
+  },
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "topojson-client": "^3.1.0",
+    "us-atlas": "^3.0.1"
+  }
+}
