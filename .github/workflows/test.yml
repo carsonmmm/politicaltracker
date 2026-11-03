@@ -2,6 +2,7 @@ name: Tests
 on:
   push:
   pull_request:
+  workflow_dispatch:
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -17,3 +18,20 @@ jobs:
           DATA_DIR: ${{ runner.temp }}/midterm-data
       - name: Check which data sources GitHub's runners can reach
         run: npm run probe
+
+  smoke:
+    # Runs the real adapters against the real public APIs and prints what they find.
+    # Informational: it never fails the build.
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run smoke
+        timeout-minutes: 10
+        env:
+          FEC_API_KEY: ${{ secrets.FEC_API_KEY }}

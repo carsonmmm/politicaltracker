@@ -33,7 +33,7 @@ async function probeOne(s, { fetchImpl, timeoutMs }) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
-    const res = await fetchImpl(url, { method: s.head ? 'HEAD' : 'GET', signal: ctrl.signal, headers: { 'User-Agent': 'midterm-live/0.1', Origin: 'http://localhost' } });
+    const res = await fetchImpl(url, { method: s.head ? 'HEAD' : 'GET', signal: ctrl.signal, headers: { 'User-Agent': 'midterm-live/0.1 (election tracker)', Accept: 'application/json' } });
     const cors = res.headers.get('access-control-allow-origin');
     const corsNote = cors ? `Browser CORS: allowed (${cors})` : 'Browser CORS: no allow-origin header, so a browser-only app would be blocked; the server fetches it instead.';
     if (res.status === 401 || res.status === 403) return { ...base, result: 'needs_key', status: res.status, detail: `HTTP ${res.status} at ${redact(url)}. ${corsNote}` };
