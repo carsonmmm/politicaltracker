@@ -163,7 +163,7 @@ function oddsHistory(d) {
 function candidates(d) {
   let html = '<header><h2>Candidates</h2></header>';
   if (!d.candidates.length) return html + notAvailable('no candidate list has been loaded for this race. Candidates come from the results feed, the research file, or Admin entries.');
-  html += `<ul class="feed">${d.candidates.map((c) => `<li>${chip(c.party)} <a href="${profileHref(d, c.name)}"><b>${esc(c.name)}</b></a>${c.incumbent ? ' <span class="tag">Incumbent</span>' : ''} <span class="small muted">${esc(PARTY_NAME[c.party] || c.party_label || 'Other')}</span><div class="src">${c.source_url ? `<a href="${esc(c.source_url)}" target="_blank" rel="noopener">${esc(c.source || c.origin)}</a>` : esc(c.source || c.origin)}</div></li>`).join('')}</ul>`;
+  html += `<ul class="feed">${d.candidates.map((c) => `<li>${chip(c.party)} <a href="${profileHref(d, c.name)}"><b>${esc(c.name)}</b></a>${c.incumbent ? ' <span class="tag">Incumbent</span>' : ''} <span class="small muted">${esc(PARTY_NAME[c.party] || c.party_label || 'Other')}</span><div class="src">${(c.sources?.length ? c.sources : [{ name: c.source || c.origin, url: c.source_url }]).map((s) => (s.url ? `<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.name)}</a>` : esc(s.name))).join(' · ')}${c.listing_only ? ' <span class="tag warn" title="Taken from market listings and cross-checks, not an official certified candidate list">Listing, unconfirmed</span>' : ''}</div></li>`).join('')}</ul>`;
   return html + '<p class="tiny muted">Open a name for the full profile: biography, positions, endorsements and finance.</p>';
 }
 

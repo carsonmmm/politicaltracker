@@ -112,13 +112,13 @@ function bop(title, c, baseline, unit) {
     ['R', R, `Republicans: ${c.not_up.R} not up + ${c.called.R} called`],
   ];
   const bar = segs.filter(([, n]) => n > 0).map(([k, n, l]) => `<span class="seg-${k}" style="width:${(n / c.total) * 100}%" title="${esc(l)}"></span>`).join('');
-  const tie = c.tiebreak ? `<div class="tiny muted">${esc(c.tiebreak.note)}</div>` : '';
+  const tie = (c.tiebreak ? `<div class="tiny muted">${esc(c.tiebreak.note)}</div>` : '') + (c.caucus_note ? `<div class="tiny muted">${esc(c.caucus_note)}</div>` : '') + (c.not_up_note ? `<div class="tiny muted">${esc(c.not_up_note)}</div>` : '');
   return `<div class="bop"><header><h2>${title}</h2><span class="small muted">${c.majority} for majority</span></header>
     <div class="row"><span class="pD"><b>D ${D}</b> called/holdover · ${c.leading.D} leading</span><span class="pR">${c.leading.R} leading · <b>R ${R}</b> called/holdover</span></div>
     <div class="bar" role="img" aria-label="${esc(`${title}: Democrats ${D} called or not up, ${c.leading.D} leading; Republicans ${R} called or not up, ${c.leading.R} leading; ${c.uncalled} with no votes; ${c.majority} needed for majority`)}">${bar}<span class="mline" style="left:${(c.majority / c.total) * 100}%" title="Majority line: ${c.majority}"></span></div>
     <div class="row small muted"><span>${c.up} ${unit} on the ballot · ${c.uncalled} not reporting</span>${O || c.leading.O ? `<span class="pO">Other ${O} · ${c.leading.O} leading</span>` : ''}</div>
     ${tie}
-    ${baseline.verified ? '' : `<div class="tiny" style="margin-top:4px"><span class="tag warn">Unverified baseline</span> Holdover counts are builder-compiled. <a href="#/admin">Correct in admin</a></div>`}
+    ${baseline.verified || (title === 'Senate' && baseline.senate_verified) ? '' : `<div class="tiny" style="margin-top:4px"><span class="tag warn">Unverified baseline</span> Holdover counts are builder-compiled. <a href="#/admin">Correct in admin</a></div>`}
     <div class="legend" style="margin-top:6px"><span><i class="seg-D" style="background:var(--dem)"></i>Called/not up</span><span><i style="background:var(--dem-soft)"></i>Leading (striped)</span><span><i style="background:var(--none)"></i>Not reporting</span></div></div>`;
 }
 

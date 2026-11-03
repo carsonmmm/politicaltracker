@@ -9,7 +9,8 @@
     "probe": "node server/probe.js",
     "test": "node --test test/*.test.js",
     "demo": "node scripts/demo.js",
-    "smoke": "node scripts/smoke.js"
+    "smoke": "node scripts/smoke.js",
+    "import": "node scripts/import-candidates.js"
   },
   "engines": {
     "node": ">=20"

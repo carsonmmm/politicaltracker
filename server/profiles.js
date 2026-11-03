@@ -106,7 +106,8 @@ export function buildProfile(base, research, manual) {
     roles: pick('roles') || [],
     endorsements: pick('endorsements') || [],
     positions,
-    researched: Boolean(research || manual),
+    // A candidate-list entry (listing_only) is not a researched profile.
+    researched: Boolean((research && !research.listing_only) || manual),
     origins: [research && 'research file', manual && 'Manual'].filter(Boolean),
     updated_at: m.entered_at || r.researched_at || null,
   };

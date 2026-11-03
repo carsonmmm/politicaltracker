@@ -294,7 +294,7 @@ export class Engine {
       out.push(row);
     };
     for (const c of primary?.candidates || []) add({ name: c.name, party: c.party, incumbent: c.incumbent, source: primary.source, source_url: primary.source_url }, primary.source);
-    for (const p of this.research.profiles) if (p.raceId === rid) add({ name: p.name, party: p.party, incumbent: p.incumbent, source: 'Research file', source_url: p.source_url || p.bio?.source_url }, 'research file');
+    for (const p of this.research.profiles) if (p.raceId === rid) add({ name: p.name, party: p.party, incumbent: p.incumbent, source: p.source || 'Research file', source_url: p.source_url || p.bio?.source_url, sources: p.sources, listing_only: p.listing_only }, 'research file');
     for (const c of this.manual.candidates[rid] || []) add(c, 'Manual');
     return out;
   }
@@ -739,7 +739,14 @@ export class Engine {
   }
 
   balance(summaries) {
-    const ch = this.chamberConfig();
+    const ch = structuredClone(this.chamberConfig());
+    // Independents are shown on their own unless the baseline says (with a source) whom they caucus with.
+    const cw = ch.senate?.independents_caucus_with;
+    if ((cw === 'D' || cw === 'R') && ch.senate.not_up?.I) {
+      ch.senate.not_up[cw] += ch.senate.not_up.I;
+      ch.senate.caucus_note = `${ch.senate.not_up.I} independent(s) counted with ${cw === 'D' ? 'Democrats' : 'Republicans'} (caucus, per ${ch.senate.independents_caucus_source || 'Admin entry'})`;
+      ch.senate.not_up.I = 0;
+    }
     const mk = (office, conf) => {
       const rs = summaries.filter((s) => s.office === office);
       const called = { D: 0, R: 0, O: 0 };
@@ -750,13 +757,13 @@ export class Engine {
         else if (s.leader) leading[s.leader.party in leading ? s.leader.party : 'O']++;
         else uncalled++;
       }
-      return { total: conf.total, majority: conf.majority, tiebreak: conf.tiebreak || null, not_up: conf.not_up, called, leading, uncalled, up: rs.length };
+      return { total: conf.total, majority: conf.majority, tiebreak: conf.tiebreak || null, not_up: conf.not_up, caucus_note: conf.caucus_note || null, not_up_note: conf.not_up_note || null, called, leading, uncalled, up: rs.length };
     };
     return {
       senate: mk('S', ch.senate),
       house: mk('H', ch.house),
       governors: mk('G', ch.governors),
-      baseline: { verified: ch.verified, source: ch.source, source_url: ch.source_url, note: ch._note },
+      baseline: { verified: ch.verified, senate_verified: Boolean(ch.senate_verified), source: ch.source, source_url: ch.source_url, note: ch._note },
     };
   }
 

@@ -1,0 +1,35 @@
+name: Import data
+# Pulls real candidates (Polymarket listings, Wikipedia cross-check, VoteView incumbents)
+# and the Senate baseline (senate.gov), then commits the results to this branch.
+# Run it from the Actions tab ("Run workflow"), or let it run every 6 hours.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 */6 * * *'
+permissions:
+  contents: write
+concurrency:
+  group: import-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run import
+        timeout-minutes: 15
+      - name: Show the report
+        run: cat data/import-report.md
+      - name: Commit results
+        run: |
+          git config user.name "midterm-live import"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/candidates-research.json data/import-report.md config/chamber.json
+          if git diff --cached --quiet; then echo "No changes"; exit 0; fi
+          git commit -m "Import candidates and Senate baseline from public sources ($(date -u +%Y-%m-%dT%H:%MZ))"
+          git push

@@ -100,6 +100,16 @@ Needs Node 20 or newer. The two runtime dependencies are the map shapes (`us-atl
 
 Everything can also be entered or corrected in the **Admin** page, where entries are labelled Manual.
 
+## Importing real candidates
+
+`npm run import` (or the **Import data** workflow on GitHub, which also runs every 6 hours) fills `data/candidates-research.json` with each race's candidates and updates the Senate baseline:
+
+* **Candidates:** taken from Polymarket race markets, which label each candidate's party. The highest-priced Democrat and Republican are kept, plus anyone else at 5% or more; top-two/top-four states keep the top names. They are cross-checked against Wikipedia's Senate and governor election infoboxes, and incumbents are marked from VoteView's current-Congress list. Every entry lists its sources and shows as **"Listing, unconfirmed"** in the app: a market listing is not an official certified list.
+* **Senate baseline:** seats not on the ballot are counted from senate.gov's senator list (party and class). Independents are shown on their own unless you set `independents_caucus_with` in the chamber baseline (Admin), with a source.
+* **Report:** `data/import-report.md` lists races with no candidates, names skipped because no source gave a party, and market-vs-Wikipedia disagreements, for a person to check.
+
+Researched profiles (entries without `listing_only`) are never overwritten.
+
 ## Checked against the real APIs
 
 `npm run smoke` runs every adapter against the live sources and prints what it found. GitHub Actions runs it on each push (job "smoke", informational). The latest run on GitHub's servers:
