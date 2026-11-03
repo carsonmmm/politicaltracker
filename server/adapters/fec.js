@@ -122,9 +122,15 @@ export function fecParty(p = '') {
 
 /** "OSSOFF, T. JONATHAN" -> "T. Jonathan Ossoff" */
 export function displayName(fecName = '') {
-  const [last, rest] = fecName.split(',').map((s) => s.trim());
-  const title = (s) => (s || '').toLowerCase().replace(/\b([a-z])/g, (m) => m.toUpperCase()).replace(/\b(Mr|Mrs|Ms|Dr|Jr|Sr)\b\.?/gi, (m) => m.replace('.', '')).trim();
-  return rest ? `${title(rest)} ${title(last)}`.replace(/\s+/g, ' ') : title(last);
+  const [last, ...restParts] = fecName.split(',').map((s) => s.trim());
+  let rest = restParts.join(' ');
+  const cap = (s) => (s || '').toLowerCase().replace(/(^|[\s\-'])([a-z])/g, (m, a, b) => a + b.toUpperCase()).replace(/\b(Ii|Iii|Iv)\b/g, (m) => m.toUpperCase());
+  rest = rest.replace(/\b(MR|MRS|MS|DR|HON|REV)\b\.?/gi, ' ');
+  const suf = rest.match(/\b(JR|SR|II|III|IV)\b\.?/i);
+  if (suf) rest = rest.replace(suf[0], ' ');
+  const given = cap(rest.replace(/\s+/g, ' ').trim()).replace(/\b([A-Z])\b(?!\.)/g, '$1.');
+  const out = `${given} ${cap(last)}${suf ? ` ${/^(jr|sr)$/i.test(suf[1]) ? cap(suf[1]) : suf[1].toUpperCase()}` : ''}`;
+  return out.replace(/\s+/g, ' ').trim();
 }
 
 export function fecLastName(fecName = '') {

@@ -89,6 +89,7 @@ function cookieJar() {
     },
     header: () => [...jar].map(([k, v]) => `${k}=${v}`).join('; '),
     get: (k) => jar.get(k),
+    names: () => jar.keys(),
   };
 }
 
@@ -123,6 +124,12 @@ export function createSenateEfdAdapter({ fetchImpl } = {}) {
       body: new URLSearchParams({ prohibition_agreement: '1', csrfmiddlewaretoken: token }).toString(),
     });
     jar.take(agree);
+    // Follow the redirect (usually to /search/) so any session cookie it sets is kept.
+    const loc = agree.headers.get('location');
+    if (agree.status >= 300 && agree.status < 400 && loc) {
+      const next = await f(new URL(loc, `${EFD}/search/home/`).toString(), { headers: { Cookie: jar.header(), Referer: `${EFD}/search/home/`, 'User-Agent': 'midterm-live/0.1' }, redirect: 'manual' });
+      jar.take(next);
+    }
     return jar;
   }
   return {
@@ -130,10 +137,10 @@ export function createSenateEfdAdapter({ fetchImpl } = {}) {
     /** Reports filed by people with this last name since startDate (MM/DD/YYYY). */
     async search(lastName, { startDate = '01/01/2024', withTrades = 3 } = {}) {
       const jar = await session();
-      const csrf = jar.get('csrftoken');
+      const csrf = jar.get('csrftoken') || jar.get('csrf');
       const params = new URLSearchParams({ start: '0', length: '100', report_types: '[7, 11]', filer_types: '[1, 4]', submitted_start_date: `${startDate} 00:00:00`, submitted_end_date: '', candidate_state: '', senator_state: '', office_id: '', first_name: '', last_name: lastName, csrfmiddlewaretoken: csrf || '' });
       const res = await f(`${EFD}/search/report/data/`, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', Cookie: jar.header(), Referer: `${EFD}/search/`, 'X-CSRFToken': csrf || '', 'User-Agent': 'midterm-live/0.1' }, body: params.toString() });
-      if (!res.ok) throw new Error(`Senate eFD HTTP ${res.status}`);
+      if (!res.ok) throw new Error(`Senate eFD HTTP ${res.status} at search step (cookies: ${[...jar.names()].join(', ') || 'none'})`);
       const body = await res.json();
       const reports = (body.data || []).map((row) => {
         const link = (row[3] || '').match(/href="([^"]+)"/)?.[1] || null;

@@ -6,7 +6,9 @@ import { validateProfile, validateMoment, buildProfile, ageOn, candidateKey, ISS
 
 test('FEC name helpers', () => {
   assert.equal(displayName('OSSOFF, T. JONATHAN'), 'T. Jonathan Ossoff');
-  assert.equal(displayName('SMITH, JOHN JR.'), 'John Jr Smith');
+  assert.equal(displayName('SMITH, JOHN JR.'), 'John Smith Jr');
+  assert.equal(displayName('COLLINS, MICHAEL A JR'), 'Michael A. Collins Jr');
+  assert.equal(displayName('MCCOLUMN, JONATHAN MR'), 'Jonathan Mccolumn');
   assert.equal(fecLastName('CANDIDATE-A, TEST'), 'candidate-a');
   assert.equal(fecParty('DEMOCRATIC PARTY'), 'D');
   assert.equal(fecParty('REPUBLICAN PARTY'), 'R');

@@ -14,7 +14,9 @@ const GOV_RE = /\bgovernor\b|\bgubernatorial\b|\bgov\.\s/i;
 const HOUSE_RE = /\bhouse\b|\bcongressional\b|\bdistrict\b|\brepresentative\b/i;
 const CONTROL_RE = /\b(control|majority|which party (will )?wins?|balance of power)\b/i;
 const YEAR_OK_RE = /2026|midterm/i;
-const BAD_YEAR_RE = /\b(2024|2028|2030|2032)\b/;
+const BAD_YEAR_RE = /\b(2024|2025|2027|2028|2029|2030|2032)\b/;
+// Markets about a race that are not "who wins" (timing, comparisons, margins, counts, candidacies).
+const NON_RACE_RE = /\bwhen will\b|\bwho will run\b|\bwill .* run for\b|\bcloser\b|\bclosest\b|\bhow many\b|\bmargin\b|\bwin by\b|\bby how much\b|\bturnout\b|\bpopular vote\b|\bvote share\b|\bseats\b|\bconcede\b|\brecount\b|\bdebate\b|\bendorse|\bspeaker\b|\btrifecta\b|\bsupermajority\b|\bbefore\b.*\bcall|\bcalled\b|&/i;
 const PRIMARY_RE = /\bprimary\b|\bnominee\b|\bnomination\b|\brunoff\b/i;
 // Offices that share words with the races we track but are different contests.
 const OTHER_OFFICE_RE = /lieutenant|\blt\.?\s*gov|\bstate\s+(senate|house|legislature|assembly|representative)|\blegislat|\bgeneral assembly\b|\bhouse of delegates\b|\battorney general\b|\bsecretary of state\b|\bmayor\b|\bcity council\b/i;
@@ -31,9 +33,13 @@ export function matchMarket({ title = '', subtitle = '', ticker = '', seriesTick
   if (BAD_YEAR_RE.test(text) && !YEAR_OK_RE.test(text)) return null;
   if (PRIMARY_RE.test(text)) return null;
   if (OTHER_OFFICE_RE.test(text)) return null;
+  if (NON_RACE_RE.test(text)) return null;
+  // Kalshi event tickers end in the cycle year ("-26", "-2026", "-26NOV03"); skip other cycles.
+  const yr = String(ticker || '').match(/-(\d{2}|\d{4})(?:[A-Z]{3}\d{2})?$/);
+  if (yr && yr[1].slice(-2) !== '26') return null;
 
-  // Kalshi tickers are the most reliable signal when present.
-  const t = (seriesTicker || ticker || '').toUpperCase();
+  // Kalshi tickers are the most reliable signal when present. Newer series carry a "KX" prefix.
+  const t = (seriesTicker || ticker || '').toUpperCase().replace(/^KX/, '');
   let m;
   if ((m = t.match(/^CONTROL(S|H)\b/)) || /^(SENATE|HOUSE)CONTROL/.test(t)) {
     const chamber = m ? m[1] : t.startsWith('SENATE') ? 'S' : 'H';

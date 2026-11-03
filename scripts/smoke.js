@@ -62,8 +62,15 @@ await step('Polymarket adapter', async () => {
   const races = new Set(records.map((r) => r.raceId));
   line(`matched events: ${records.length}; distinct races: ${races.size}`);
   for (const r of records.slice(0, 40)) line(`  ${r.raceId.padEnd(10)} "${r.title}" ${r.outcomes.slice(0, 4).map((o) => `${o.party || '?'}:${o.label}=${o.price}`).join('  ')}`);
+  const odd = records.filter((r) => !/election winner|winner\??\s*(\(.*\))?$/i.test(r.title));
+  line(`matches whose title is not a plain "who wins" title (${odd.length}) — check these by eye:`);
+  for (const r of odd.slice(0, 80)) line(`  ${r.raceId.padEnd(10)} "${r.title}"`);
+  const perRace = new Map();
+  for (const r of records) perRace.set(r.raceId, (perRace.get(r.raceId) || 0) + 1);
+  line(`races with more than one Polymarket event: ${[...perRace].filter(([, n]) => n > 1).map(([k, n]) => `${k}x${n}`).slice(0, 40).join(' ')}`);
+  line(`House races matched: ${[...perRace.keys()].filter((k) => k.startsWith('H-')).length}; Senate: ${[...perRace.keys()].filter((k) => k.startsWith('S-')).length}; Governor: ${[...perRace.keys()].filter((k) => k.startsWith('G-')).length}; measures: ${[...perRace.keys()].filter((k) => k.startsWith('BM-')).length}`);
   line('unmatched sample:');
-  for (const u of p.getUnmatched().slice(0, 40)) line(`  ? ${u.key} "${u.title}"`);
+  for (const u of p.getUnmatched().slice(0, 25)) line(`  ? ${u.key} "${u.title}"`);
 });
 
 await step('OpenFEC (DEMO_KEY unless FEC_API_KEY is set)', async () => {

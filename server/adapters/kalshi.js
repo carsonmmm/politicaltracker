@@ -7,7 +7,7 @@ export const SOURCE = 'Kalshi';
 const BASE = process.env.KALSHI_BASE || 'https://api.elections.kalshi.com/trade-api/v2';
 const ELECTION_CATEGORY_RE = /election|politic/i;
 const SERIES_CATEGORIES = (process.env.KALSHI_CATEGORIES || 'Elections,Politics').split(',');
-const ELECTORAL_SERIES_RE = /^(SENATE|GOV|HOUSE|CONTROL)/;
+const ELECTORAL_SERIES_RE = /^(KX)?(SENATE|GOV|HOUSE|CONTROL)/;
 
 export function createKalshiAdapter({ fetchImpl, marketMap = {}, maxPages = 40 } = {}) {
   let known = new Map(); // event_ticker -> {raceId, title, series_ticker}
@@ -28,11 +28,16 @@ export function createKalshiAdapter({ fetchImpl, marketMap = {}, maxPages = 40 }
   async function discoverBySeries(found, misses) {
     const series = new Map();
     for (const cat of SERIES_CATEGORIES) {
-      const body = await fetchJson(`${BASE}/series?category=${encodeURIComponent(cat)}`, { fetchImpl });
-      for (const s of body.series || []) if (ELECTORAL_SERIES_RE.test(s.ticker || '') || /senate|house|governor|gubernatorial|congress/i.test(s.title || '')) series.set(s.ticker, s);
+      let cursor = '';
+      for (let page = 0; page < 20; page++) {
+        const body = await fetchJson(`${BASE}/series?category=${encodeURIComponent(cat)}${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`, { fetchImpl });
+        for (const s of body.series || []) if (ELECTORAL_SERIES_RE.test(s.ticker || '') || /senate|house|governor|gubernatorial|congress|ballot|proposition|amendment/i.test(s.title || '')) series.set(s.ticker, s);
+        cursor = body.cursor;
+        if (!cursor) break;
+      }
     }
     if (!series.size) return 0;
-    const lists = await mapLimit([...series.keys()], 4, (t) => fetchJson(`${BASE}/events?series_ticker=${encodeURIComponent(t)}&status=open&limit=200`, { fetchImpl }));
+    const lists = await mapLimit([...series.keys()], 2, (t) => fetchJson(`${BASE}/events?series_ticker=${encodeURIComponent(t)}&status=open&limit=200`, { fetchImpl }));
     let ok = 0;
     for (const body of lists) {
       if (body?.error) continue;
@@ -73,7 +78,7 @@ export function createKalshiAdapter({ fetchImpl, marketMap = {}, maxPages = 40 }
     // Discovery is driven by the scheduler; with nothing discovered there is nothing to refresh.
     if (known.size === 0) return { records: [], errors: [] };
     const entries = [...known.entries()];
-    const results = await mapLimit(entries, 4, async ([ticker, meta]) => {
+    const results = await mapLimit(entries, 2, async ([ticker, meta]) => {
       const body = await fetchJson(`${BASE}/events/${encodeURIComponent(ticker)}?with_nested_markets=true`, { fetchImpl });
       return normalizeEvent(body, meta);
     });
@@ -111,7 +116,8 @@ const round = (x) => Math.round(x * 1000) / 1000;
 
 export function normalizeEvent(body, meta) {
   const ev = body.event || body;
-  const markets = body.markets || ev.markets || [];
+  // With nested markets the list sits inside the event; the top-level array can be present but empty.
+  const markets = (body.markets?.length ? body.markets : ev.markets) || [];
   const fetched_at = nowIso();
   const outcomes = markets
     .filter((m) => !m.status || ['active', 'open', 'initialized', 'closed', 'settled', 'finalized'].includes(m.status))

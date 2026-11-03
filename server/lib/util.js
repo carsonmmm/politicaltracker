@@ -13,7 +13,20 @@ export class FetchError extends Error {
   }
 }
 
-export async function fetchJson(url, { timeoutMs = 15000, headers = {}, fetchImpl = globalThis.fetch } = {}) {
+export async function fetchJson(url, opts = {}) {
+  const { retries429 = 3 } = opts;
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await fetchJsonOnce(url, opts);
+    } catch (err) {
+      if (err.status !== 429 || attempt >= retries429) throw err;
+      // Back off: Retry-After if given, else 1 s, 2 s, 4 s.
+      await new Promise((r) => setTimeout(r, err.retryAfterMs || 1000 * 2 ** attempt));
+    }
+  }
+}
+
+async function fetchJsonOnce(url, { timeoutMs = 15000, headers = {}, fetchImpl = globalThis.fetch } = {}) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), timeoutMs);
   let res;
@@ -30,7 +43,10 @@ export async function fetchJson(url, { timeoutMs = 15000, headers = {}, fetchImp
   }
   if (!res.ok) {
     const kind = res.status === 401 || res.status === 403 ? 'auth' : 'http';
-    throw new FetchError(`HTTP ${res.status} ${res.statusText || ''}`.trim(), { status: res.status, url: redact(url), kind });
+    const e = new FetchError(`HTTP ${res.status} ${res.statusText || ''}`.trim(), { status: res.status, url: redact(url), kind });
+    const ra = Number(res.headers?.get?.('retry-after'));
+    if (Number.isFinite(ra) && ra > 0) e.retryAfterMs = Math.min(ra, 30) * 1000;
+    throw e;
   }
   try {
     return await res.json();

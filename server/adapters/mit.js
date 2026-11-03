@@ -122,7 +122,7 @@ export function createMitAdapter({ fetchImpl } = {}) {
     const files = (meta.data?.latestVersion?.files || []).map((f) => f.dataFile || f).filter((f) => f && f.id);
     const scored = files
       .map((f) => ({ f, name: `${f.originalFileName || ''} ${f.filename || ''}`.toLowerCase() }))
-      .filter((x) => /\.(csv|tab)\b/.test(x.name) && want.test(x.name))
+      .filter((x) => /\.(csv|tab)\b/.test(x.name) && want.test(x.name) && !/source|codebook|readme/.test(x.name))
       .sort((a, b) => (b.f.filesize || 0) - (a.f.filesize || 0));
     if (!scored.length) throw new Error(`no data file found in ${doi}`);
     return scored[0].f;
