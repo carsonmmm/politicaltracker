@@ -276,7 +276,8 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, () => {
   console.log(`Midterm Live on http://localhost:${PORT}`);
-  console.log(`Admin token: ${ADMIN_TOKEN}${process.env.ADMIN_TOKEN ? ' (from ADMIN_TOKEN)' : ' (random; set ADMIN_TOKEN to fix it)'}`);
+  // Never print a token the operator chose (hosting logs are often shared); only show a generated one.
+  console.log(process.env.ADMIN_TOKEN ? 'Admin token: set from ADMIN_TOKEN (not printed)' : `Admin token: ${ADMIN_TOKEN} (random for this run; set ADMIN_TOKEN to choose your own)`);
   if (!process.env.NO_POLL) startScheduler(engine);
   probeAll().then((rows) => {
     lastProbe = { ran_at: nowIso(), rows };
