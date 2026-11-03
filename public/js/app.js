@@ -5,6 +5,8 @@ import * as lists from './views/lists.js';
 import * as admin from './views/admin.js';
 import * as sim from './views/sim.js';
 import * as candidate from './views/candidate.js';
+import * as after from './views/after.js';
+import { wireStars, checkAlerts, toast } from './watch.js';
 
 const app = document.getElementById('app');
 const liveEl = document.getElementById('live');
@@ -30,6 +32,7 @@ const routes = [
   [/^#\/odds$/, lists.odds],
   [/^#\/sources$/, lists.sources],
   [/^#\/admin$/, admin],
+  [/^#\/after$/, after],
   [/^#\/sim(?:\?(.*))?$/, sim, (m) => ({ query: m[1] || '' })],
 ];
 
@@ -92,9 +95,14 @@ function connect() {
   es.onerror = () => { sseUp = false; renderChrome(); };
 }
 
+let alertsReady = false;
 async function refresh() {
   try {
     await fetchState();
+    // The first load only records baselines; later updates raise alerts for watched races.
+    const alerts = checkAlerts(ctx.state.races);
+    if (alertsReady) alerts.forEach(toast);
+    alertsReady = true;
     if (current?.update) current.update(app, ctx);
   } catch (err) {
     banner.hidden = false;
@@ -121,6 +129,8 @@ setInterval(() => {
 }, 1000);
 
 window.addEventListener('hashchange', route);
+wireStars((id) => ctx.state?.races.find((r) => r.id === id));
+document.addEventListener('watch-change', () => current?.update?.(app, ctx));
 (async () => {
   try { await fetchState(); } catch (err) { banner.hidden = false; banner.className = 'banner bad'; banner.textContent = `Could not reach the Midterm Live server: ${err.message}`; }
   await route();

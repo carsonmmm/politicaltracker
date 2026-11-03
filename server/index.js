@@ -168,6 +168,23 @@ const admin = {
     engine.manual.measures[id] = { state: b.state, number: b.number, title: b.title, summary: b.summary || undefined, summary_source_url: b.summary_source_url || undefined, threshold: b.threshold || 'majority', supporters: b.supporters || [], opponents: b.opponents || [], finance: b.finance || {}, ap_race_id: b.ap_race_id || undefined, entered_at: nowIso() };
     engine.syncMeasures();
   },
+  runoff(b) {
+    need(engine.byId.has(b.raceId), 'Unknown raceId');
+    need(/^\d{4}-\d{2}-\d{2}$/.test(b.date || '') && isUrl(b.source_url), 'date (YYYY-MM-DD) and source_url required');
+    engine.manual.runoffs[b.raceId] = { date: b.date, source_url: b.source_url, origin: 'Manual', entered_at: nowIso() };
+  },
+  recount(b) {
+    need(/^[A-Z]{2}$/.test(b.state || ''), 'state (two letters) required');
+    need(['automatic', 'request'].includes(b.type), 'type is automatic or request');
+    need(b.margin_pct != null || b.margin_votes != null, 'margin_pct or margin_votes required');
+    need(isUrl(b.source_url), 'source_url required');
+    engine.manual.recount[b.state] = { type: b.type, margin_pct: b.margin_pct == null || b.margin_pct === '' ? undefined : Number(b.margin_pct), margin_votes: b.margin_votes == null || b.margin_votes === '' ? undefined : Number(b.margin_votes), note: b.note || undefined, source_url: b.source_url, verified: true, entered_at: nowIso() };
+  },
+  certification(b) {
+    need(/^[A-Z]{2}$/.test(b.state || ''), 'state (two letters) required');
+    need(/^\d{4}-\d{2}-\d{2}$/.test(b.date || '') && isUrl(b.source_url), 'date (YYYY-MM-DD) and source_url required');
+    engine.manual.certification[b.state] = { date: b.date, body: b.body || undefined, source_url: b.source_url, entered_at: nowIso() };
+  },
   moment(b) {
     const problems = validateMoment(b);
     need(!problems.length, problems.join('; '));
@@ -177,6 +194,9 @@ const admin = {
   delete(b) {
     const { kind, raceId, index } = b;
     if (kind === 'profile') delete engine.manual.profiles[b.key];
+    else if (kind === 'runoff') delete engine.manual.runoffs[raceId];
+    else if (kind === 'recount') delete engine.manual.recount[raceId];
+    else if (kind === 'certification') delete engine.manual.certification[raceId];
     else if (kind === 'measure') { delete engine.manual.measures[raceId]; engine.syncMeasures(); }
     else if (kind === 'lean') {
       const own = engine.manual.lean.map((r, i) => [r, i]).filter(([r]) => r.raceId === raceId);

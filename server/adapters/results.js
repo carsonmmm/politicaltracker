@@ -75,7 +75,8 @@ export function normalizeAp(body, measureLookup = () => null) {
       status,
       pctExpected: num(top.eevp ?? race.eevp) ?? null,
       call: winner ? { winner: winner.name, party: winner.party, calledBy: 'AP', calledAt: race.lastUpdated || top.lastUpdated || fetched_at, source_url: 'https://www.ap.org/elections/' } : null,
-      candidates: cands.map(({ ap_winner, ...c }) => c),
+      // AP marks candidates who advance to a runoff with winner = "R".
+      candidates: cands.map(({ ap_winner, ...c }) => (ap_winner === 'R' ? { ...c, advances: true } : c)),
       counties: units
         .filter((u) => u.level === 'FIPSCode' || u.level === 'county' || u.fipsCode)
         .filter((u) => u !== top)

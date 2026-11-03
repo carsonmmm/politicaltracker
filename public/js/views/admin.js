@@ -128,6 +128,20 @@ export async function mount(root, ctx) {
         <div class="row2"><label>Supporters: Name | URL<textarea name="supporters" rows="2"></textarea></label><label>Opponents: Name | URL<textarea name="opponents" rows="2"></textarea></label></div>
         <div class="row2"><label>Support raised: Amount | Source | URL | As of (YYYY-MM-DD)<input name="support_fin" placeholder="12000000 | CA Secretary of State | https://... | 2026-10-24"></label><label>Oppose raised: Amount | Source | URL | As of<input name="oppose_fin"></label></div>
         <button class="btn">Save measure</button><div class="msg" data-msg></div></form></section>
+    <div class="grid g3" style="margin-top:16px">
+    <section class="panel"><h2>Runoff date</h2>
+      <form class="admin" id="f-runoff"><label>Race ID <input name="raceId" list="races" required></label><label>Runoff date <input name="date" type="date" required></label><label>Source URL <input name="source_url" type="url" required></label>
+      <button class="btn">Save runoff</button><div class="msg" data-msg></div></form></section>
+    <section class="panel"><h2>Recount threshold</h2>
+      <form class="admin" id="f-recount"><div class="row2"><label>State <input name="state" maxlength="2" required></label><label>Type <select name="type"><option value="automatic">Automatic</option><option value="request">On request</option></select></label></div>
+      <div class="row2"><label>Margin % <input name="margin_pct" type="number" step="0.01"></label><label>or margin in votes <input name="margin_votes" type="number"></label></div>
+      <label>Note <input name="note"></label><label>Source URL (state law or election office) <input name="source_url" type="url" required></label>
+      <button class="btn">Save threshold</button><div class="msg" data-msg></div></form></section>
+    <section class="panel"><h2>Certification deadline</h2>
+      <form class="admin" id="f-cert"><div class="row2"><label>State <input name="state" maxlength="2" required></label><label>Deadline <input name="date" type="date" required></label></div>
+      <label>Certifying body <input name="body" placeholder="State Board of Canvassers"></label><label>Source URL <input name="source_url" type="url" required></label>
+      <button class="btn">Save deadline</button><div class="msg" data-msg></div></form></section>
+    </div>
     <section class="panel" style="margin-top:16px"><h2>Manual entries</h2><div id="entries"></div></section>`;
   wire(root, ctx);
   loadSide(root, ctx);
@@ -188,6 +202,9 @@ function wire(root, ctx) {
   });
   on('#f-moment', (f) => ['moment', { raceId: f.raceId.value.trim(), date: f.date.value, type: f.type.value, text: f.text.value.trim(), source_url: f.source_url.value.trim() }]);
   on('#f-profile', (f) => ['profile', profileBody(f)]);
+  on('#f-runoff', (f) => ['runoff', { raceId: f.raceId.value.trim(), date: f.date.value, source_url: f.source_url.value.trim() }]);
+  on('#f-recount', (f) => ['recount', { state: f.state.value.trim().toUpperCase(), type: f.type.value, margin_pct: f.margin_pct.value === '' ? null : Number(f.margin_pct.value), margin_votes: f.margin_votes.value === '' ? null : Number(f.margin_votes.value), note: f.note.value.trim(), source_url: f.source_url.value.trim() }]);
+  on('#f-cert', (f) => ['certification', { state: f.state.value.trim().toUpperCase(), date: f.date.value, body: f.body.value.trim(), source_url: f.source_url.value.trim() }]);
   on('#f-lean', (f) => ['lean', { raceId: f.raceId.value.trim(), value: f.value.value.trim().toUpperCase().replace(/^EVEN$/, 'EVEN'), date: f.date.value.trim(), source: f.source.value.trim(), source_url: f.source_url.value.trim() }]);
   on('#f-kv', (f) => ['key-vote', { chamber: f.chamber.value, congress: Number(f.congress.value), rollnumber: Number(f.rollnumber.value), label: f.label.value.trim(), source_url: f.source_url.value.trim() }]);
   on('#f-measure', (f) => {
@@ -250,6 +267,9 @@ async function loadSide(root, ctx) {
   for (const r of manual.polls) { idx[`poll${r.raceId}`] = (idx[`poll${r.raceId}`] ?? -1) + 1; rows.push(['poll', r.raceId, idx[`poll${r.raceId}`], `${r.average}: ${r.values.map((v) => `${v.name} ${v.pct}%`).join(', ')} (${r.date})`, r.entered_at]); }
   for (const [key, pr] of Object.entries(manual.profiles || {})) rows.push(['profile', pr.raceId, key, `${pr.name} profile`, pr.entered_at]);
   for (const [id, m] of Object.entries(manual.measures || {})) rows.push(['measure', id, 0, `${m.number}: ${m.title}`, m.entered_at]);
+  for (const [id, r] of Object.entries(manual.runoffs || {})) rows.push(['runoff', id, 0, `Runoff ${r.date}`, r.entered_at]);
+  for (const [st, r] of Object.entries(manual.recount || {})) rows.push(['recount', st, 0, `${r.type} within ${r.margin_votes != null ? `${r.margin_votes} votes` : `${r.margin_pct}%`}`, r.entered_at]);
+  for (const [st, c] of Object.entries(manual.certification || {})) rows.push(['certification', st, 0, `Certify by ${c.date}`, c.entered_at]);
   for (const l of manual.lean || []) { idx[`lean${l.raceId}`] = (idx[`lean${l.raceId}`] ?? -1) + 1; rows.push(['lean', l.raceId, idx[`lean${l.raceId}`], `${l.value} (${l.source}, ${l.date})`, l.entered_at]); }
   (manual.keyVotes || []).forEach((k, i) => rows.push(['key-vote', `${k.chamber} ${k.congress}`, i, `Roll ${k.rollnumber}: ${k.label}`, k.entered_at]));
   for (const m of manual.moments || []) { idx[`moment${m.raceId}`] = (idx[`moment${m.raceId}`] ?? -1) + 1; rows.push(['moment', m.raceId, idx[`moment${m.raceId}`], `${m.date} ${m.type}: ${m.text}`, m.entered_at]); }

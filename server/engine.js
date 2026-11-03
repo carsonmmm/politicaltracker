@@ -77,7 +77,7 @@ export class Engine {
     this.version = 0;
     this.listeners = new Set();
     this.manual = store.load('manual.json', { results: {}, candidates: {}, ratings: [], polls: [], notes: {}, chamber: null, pollClosing: null, marketMap: {} });
-    for (const k of ['results', 'candidates', 'notes', 'marketMap', 'profiles', 'measures']) this.manual[k] ||= {};
+    for (const k of ['results', 'candidates', 'notes', 'marketMap', 'profiles', 'measures', 'runoffs', 'recount', 'certification']) this.manual[k] ||= {};
     for (const k of ['ratings', 'polls', 'moments', 'lean', 'keyVotes']) this.manual[k] ||= [];
     // Phase 4 stores (fetched by the scheduler, cached on disk).
     this.past = store.load('past.json', null);
@@ -414,6 +414,11 @@ export class Engine {
       leader: p?.leader ? { name: p.leader.name, party: p.leader.party, pct: p.leader.pct } : null,
       marginPct: p?.marginPct ?? null,
       pctExpected: p?.pctExpected ?? null,
+      totalVotes: p?.total ?? null,
+      // Votes still to count, implied by the source's own estimate of the share counted.
+      remainingImplied: p?.total && p.pctExpected > 0 && p.pctExpected < 100 ? Math.round(p.total * (100 / p.pctExpected - 1)) : null,
+      marginVotes: p?.candidates?.length > 1 && p.total ? (p.candidates[0].votes || 0) - (p.candidates[1].votes || 0) : null,
+      resultKind: p?.kind || null,
       resultSource: p?.source || null,
       resultFetchedAt: p?.fetched_at || null,
       resultStale: p?.stale || false,
@@ -531,6 +536,83 @@ export class Engine {
       lean: this.manual.lean.filter((l) => l.raceId === rid),
       measure: r.office === 'BM' ? this.measureView(r) : null,
     };
+  }
+
+  // ---------- Phase 5: after election night ----------
+  recountRules() {
+    const base = cfg('recount-thresholds.json');
+    return { ...base, states: { ...(base.states || {}), ...(this.manual.recount || {}) } };
+  }
+  certificationDates() {
+    const base = cfg('certification.json');
+    return { ...base, states: { ...(base.states || {}), ...(this.manual.certification || {}) } };
+  }
+
+  afterElection(summaries) {
+    const recount = this.recountRules();
+    const cert = this.certificationDates();
+    const counted = summaries.filter((s) => s.totalVotes > 0);
+    const uncalled = counted.filter((s) => s.status !== 'called' && s.status !== 'runoff')
+      .map((s) => ({ id: s.id, label: s.label, office: s.office, status: s.status, leader: s.leader, marginPct: s.marginPct, marginVotes: s.marginVotes, pctExpected: s.pctExpected, totalVotes: s.totalVotes, remainingImplied: s.remainingImplied, resultSource: s.resultSource, resultFetchedAt: s.resultFetchedAt }))
+      .sort((a, b) => (a.marginPct ?? 99) - (b.marginPct ?? 99));
+    const watch = [];
+    for (const s of counted) {
+      if (s.office === 'BM' || s.marginPct === null) continue;
+      const rule = recount.states?.[s.state];
+      if (!rule) continue;
+      const within = rule.margin_votes != null ? s.marginVotes <= rule.margin_votes : rule.margin_pct != null ? s.marginPct <= rule.margin_pct : false;
+      const near = rule.margin_votes != null ? s.marginVotes <= rule.margin_votes * 2 : rule.margin_pct != null ? s.marginPct <= rule.margin_pct * 2 : false;
+      if (within || near) watch.push({ id: s.id, label: s.label, state: s.state, marginPct: s.marginPct, marginVotes: s.marginVotes, status: s.status, within, rule, resultKind: s.resultKind });
+    }
+    const runoffs = [];
+    for (const s of summaries) {
+      const r = this.byId.get(s.id);
+      const p = this.primaryResult(s.id);
+      const advancing = (p?.candidates || []).filter((c) => c.advances);
+      const date = this.manual.runoffs?.[s.id] || (r.format?.runoffDate ? { date: r.format.runoffDate, source_url: null, origin: 'config' } : null);
+      const possible = r.format?.majorityRequired && s.status !== 'called' && s.leader && s.leader.pct !== null && s.leader.pct <= 50;
+      if (s.status === 'runoff' || advancing.length || date || possible) {
+        runoffs.push({ id: s.id, label: s.label, state: s.state, status: s.status, confirmed: s.status === 'runoff' || advancing.length > 0, candidates: advancing.length ? advancing.map((c) => ({ name: c.name, party: c.party })) : null, calledBy: advancing.length || s.status === 'runoff' ? s.resultSource : null, date, possible: Boolean(possible && !advancing.length && s.status !== 'runoff'), leaderPct: s.leader?.pct ?? null });
+      }
+    }
+    return { uncalled, recount: { rules: recount, watch: watch.sort((a, b) => a.marginPct - b.marginPct) }, runoffs, certification: cert, expected: this.expectedVsActual(summaries) };
+  }
+
+  /** Pre-election odds/rating/poll favourite vs. the called winner, for every called race. */
+  expectedVsActual(summaries) {
+    const cutoff = ELECTION_NIGHT_START;
+    const rows = [];
+    for (const s of summaries) {
+      if (s.status !== 'called' || !s.call || s.office === 'BM') continue;
+      const hist = (this.oddsHistory.get(s.id) || []).filter((h) => Date.parse(h.t) <= cutoff && (h.party === 'D' || h.party === 'R'));
+      const lastBy = new Map();
+      for (const h of hist) lastBy.set(`${h.source}|${h.party}`, h);
+      const pre = {};
+      for (const p of ['D', 'R']) {
+        const vals = [...lastBy.values()].filter((h) => h.party === p).map((h) => h.p);
+        if (vals.length) pre[p] = Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 1000) / 1000;
+      }
+      // Favourite = the side priced higher. With only one side priced, compare it to 50%. Ties have no favourite.
+      let marketFav = null;
+      if (pre.D !== undefined && pre.R !== undefined) marketFav = pre.D > pre.R ? 'D' : pre.R > pre.D ? 'R' : null;
+      else if (pre.D !== undefined) marketFav = pre.D > 0.5 ? 'D' : pre.D < 0.5 ? 'R' : null;
+      else if (pre.R !== undefined) marketFav = pre.R > 0.5 ? 'R' : pre.R < 0.5 ? 'D' : null;
+      const rating = this.ratingsFor(s.id).find((r) => Date.parse(r.date) <= cutoff) || null;
+      const ratingFav = rating ? (/\bD\b/.test(rating.rating) ? 'D' : /\bR\b/.test(rating.rating) ? 'R' : 'Toss-up') : null;
+      const poll = this.manual.polls.filter((p) => p.raceId === s.id && Date.parse(p.date) <= cutoff).sort((a, b) => b.date.localeCompare(a.date))[0] || null;
+      const cands = this.candidatesFor(s.id, this.primaryResult(s.id));
+      let pollFav = null;
+      if (poll?.values?.length) {
+        const top = [...poll.values].sort((a, b) => b.pct - a.pct)[0];
+        pollFav = cands.find((c) => nameKey(c.name) === nameKey(top.name))?.party || null;
+      }
+      rows.push({ id: s.id, label: s.label, winnerParty: s.call.party, winner: s.call.winner, calledBy: s.call.calledBy, finalMarginPct: s.marginPct, resultKind: s.resultKind,
+        market: { pre, fav: marketFav, hit: marketFav ? marketFav === s.call.party : null, asOf: new Date(cutoff).toISOString() },
+        rating: rating ? { ...rating, fav: ratingFav, hit: ratingFav === 'Toss-up' ? null : ratingFav === s.call.party } : null,
+        poll: poll ? { average: poll.average, date: poll.date, source_url: poll.source_url, fav: pollFav, hit: pollFav ? pollFav === s.call.party : null } : null });
+    }
+    const tally = (k) => ({ hits: rows.filter((r) => r[k] && r[k].hit === true).length, misses: rows.filter((r) => r[k] && r[k].hit === false).length });
+    return { rows, summary: { market: tally('market'), rating: tally('rating'), poll: tally('poll') }, cutoff: new Date(cutoff).toISOString() };
   }
 
   // ---------- Phase 4: past results, voting records, disclosures, measures ----------
@@ -734,6 +816,7 @@ export class Engine {
       control,
       movers: this.movers(),
       marketsVsExperts: this.marketsVsExperts(summaries),
+      after: this.afterElection(summaries),
       unmatchedCount: unmatched.length,
     };
   }

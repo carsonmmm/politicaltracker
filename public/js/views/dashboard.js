@@ -1,5 +1,6 @@
 import { esc, pct, chip, statusTag, leadText, oddsBar, oddsText, raceLink, timeET, dateTimeET, src, patch, PARTY_NAME, OFFICE_NAME } from '../ui.js';
 import { renderStateMap, colorFor } from '../map.js';
+import { watched } from '../watch.js';
 
 export async function mount(root, ctx) {
   root.innerHTML = `
@@ -30,7 +31,7 @@ export async function mount(root, ctx) {
       </div>
     </div>
     <section style="margin-top:16px" aria-label="Key races">
-      <header style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px"><h2>Key races (Tier 1)</h2><a class="small" href="#/races">All races →</a></header>
+      <header style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px"><h2>Key races (Tier 1) and your watchlist</h2><a class="small" href="#/races">All races →</a></header>
       <div data-k="strip"></div>
     </section>`;
   root.querySelectorAll('[data-office]').forEach((b) => b.addEventListener('click', () => { ctx.ui.mapOffice = b.dataset.office; ctx.saveUi(); drawMap(root, ctx, true); }));
@@ -141,10 +142,11 @@ function control(s) {
 }
 
 function strip(s) {
-  const t1 = s.races.filter((r) => r.tier === 1).sort((a, b) => a.office.localeCompare(b.office) || a.label.localeCompare(b.label));
+  const w = watched();
+  const t1 = s.races.filter((r) => r.tier === 1 || w.has(r.id)).sort((a, b) => (w.has(b.id) - w.has(a.id)) || a.office.localeCompare(b.office) || a.label.localeCompare(b.label));
   if (!t1.length) return '<p class="empty">No Tier 1 races yet. Tiers come from forecaster ratings (enter them in Admin) and from market odds between 15% and 85% (needs a reachable market feed).</p>';
   return `<div class="strip">${t1.map((r) => `<a class="card" href="${raceLink(r)}">
-    <div class="title"><span>${esc(r.label)}</span>${statusTag(r)}</div>
+    <div class="title"><span>${w.has(r.id) ? '<span aria-label="On your watchlist">★</span> ' : ''}${esc(r.label)}</span>${statusTag(r)}</div>
     <div class="small" style="margin:4px 0">${leadText(r)}</div>
     ${r.pctExpected != null ? `<div class="tiny muted">${r.pctExpected}% of expected vote counted</div>` : ''}
     <div class="small" style="margin-top:6px">${oddsText(r.odds)}</div>${oddsBar(r.odds)}

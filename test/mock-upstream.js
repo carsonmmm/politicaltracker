@@ -132,6 +132,11 @@ const apBody = () => ({
       reportingUnits: [{ level: 'state', statePostal: 'CA', eevp: 30, candidates: [{ first: 'Yes', last: '', party: 'NP', voteCount: 3100000 }, { first: 'No', last: '', party: 'NP', voteCount: 2700000 }] }],
     },
     {
+      raceID: '14', officeID: 'H', statePostal: 'GA', seatNum: '14',
+      reportingUnits: [{ level: 'state', statePostal: 'GA', eevp: 99, candidates: [
+        { first: 'Test', last: 'Runoff-One', party: 'GOP', voteCount: 120000, winner: 'R' }, { first: 'Test', last: 'Runoff-Two', party: 'GOP', voteCount: 95000, winner: 'R' }, { first: 'Test', last: 'Third', party: 'Dem', voteCount: 80000 } ] }],
+    },
+    {
       raceID: '3', officeID: 'H', statePostal: 'AK', seatNum: '1',
       reportingUnits: [{ level: 'state', statePostal: 'AK', eevp: 10, candidates: [
         { first: 'Test', last: 'Candidate-E', party: 'GOP', voteCount: 20000 }, { first: 'Test', last: 'Candidate-F', party: 'Dem', voteCount: 19000 } ] }],

@@ -1,0 +1,5 @@
+{
+  "_note": "State certification deadlines for the 2026 general election. Ships EMPTY: deadlines were not verified in this build. Add them here or in Admin: { \"GA\": { \"date\": \"YYYY-MM-DD\", \"body\": \"Secretary of State\", \"source_url\": \"https://...\" } }",
+  "verified": false,
+  "states": {}
+}

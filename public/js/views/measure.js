@@ -1,6 +1,7 @@
 // Ballot measure page: what it does, who is on each side, money, live results and odds.
 import { esc, pct, num, compact, src, patch, dateTimeET, STATUS_LABEL, notAvailable } from '../ui.js';
 import { lineChart } from '../chart.js';
+import { starButton } from '../watch.js';
 
 export async function mount(root, ctx) {
   root.innerHTML = `<div data-k="head"><p class="muted">Loading measure…</p></div>
@@ -32,7 +33,7 @@ function head(d) {
   const m = d.measure;
   const passed = d.call ? (/^yes/i.test(d.call.winner) ? 'Passed' : 'Failed') : null;
   return `<p class="small"><a href="#/races">← All races</a></p>
-    <h1>${esc(d.stateName)} ${esc(m.number)}</h1>
+    <h1>${esc(d.stateName)} ${esc(m.number)} ${starButton(d)}</h1>
     <p style="margin:2px 0 6px">${esc(m.title)}</p>
     <div class="status-line"><span class="tag">Ballot measure</span><span class="tag">${esc(d.stateName)}</span>
       ${passed ? `<span class="tag called">${passed} · called by ${esc(d.call.calledBy)}</span>` : `<span class="tag">${esc(STATUS_LABEL[d.status] || d.status)}</span>`}

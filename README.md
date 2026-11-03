@@ -72,6 +72,15 @@ Needs Node 20 or newer. The two runtime dependencies are the map shapes (`us-atl
 * **Ballot measures:** each has a page (`#/race/BM-CA-50`) covering what it does, supporters and opponents with money raised, Yes/No results against the pass threshold, and pass odds.
 * **Past results and partisan lean** on every race page; voting records (DW-NOMINATE, participation, key votes) and personal financial disclosures (House Clerk filings, Senate eFD trade reports) on candidate pages. See `docs/DATA.md`.
 
+## After election night (Phase 5, `#/after`)
+
+* **Uncalled races:** every race with votes but no call, closest first, with margin in points and votes, and the votes still out implied by the source's own estimate of the share counted.
+* **Recount watch:** races within, or within twice, their state's recount margin, with the rule shown (`config/recount-thresholds.json`, **unverified**).
+* **Runoff calendar:** runoffs flagged by AP (candidates who advance), possible runoffs where a majority is required, and runoff dates entered with a source.
+* **Certification deadlines:** entered with a source (`config/certification.json` ships empty).
+* **Expected vs. actual:** for each called race, the pre-election market favourite (as of 6 a.m. ET on Nov 3), the latest rating and polling average, against the called winner.
+* **Watchlist and alerts:** star (☆) any race to pin it to the top of the dashboard and races list. You get an in-app alert when it's called (or a call is withdrawn) or its market-implied chance moves 10 or more points; there's optional browser notification when the tab is in the background. Kept in your browser.
+
 ## Files you edit
 
 | File | Purpose | Ships as |
@@ -80,6 +89,8 @@ Needs Node 20 or newer. The two runtime dependencies are the map shapes (`us-atl
 | `data/candidates-research.json` | Candidate profiles and key moments | empty |
 | `data/measures-research.json` | Statewide ballot measures | empty |
 | `config/key-votes.json` | Roll-call votes shown as key votes | empty |
+| `config/recount-thresholds.json` | Automatic and on-request recount margins by state | **unverified**, builder-compiled |
+| `config/certification.json` | Certification deadlines by state | empty |
 | `config/ratings.json` | Dated expert ratings | empty |
 | `config/market-map.json` | Force a market onto a race, or ignore it | empty |
 | `config/chamber.json` | Seats not up in 2026 | **unverified**, builder-compiled |

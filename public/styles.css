@@ -177,3 +177,11 @@ details summary { cursor: pointer; font-weight: 600; }
 }
 #county svg { max-height: 440px; }
 details.more > summary { font-weight: 700; padding: 10px 14px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); }
+
+.star { border: 0; background: none; color: var(--warn); font-size: 1.1rem; line-height: 1; cursor: pointer; padding: 2px 4px; vertical-align: middle; }
+.star[aria-pressed="false"] { color: var(--muted); }
+.toasts { position: fixed; right: 16px; bottom: 16px; z-index: 50; display: grid; gap: 8px; max-width: min(380px, calc(100vw - 32px)); }
+.toast { display: flex; gap: 8px; align-items: flex-start; justify-content: space-between; background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 6px; padding: 10px 12px; box-shadow: 0 6px 20px rgba(0,0,0,.18); font-size: .9rem; }
+.toast.call { border-left-color: var(--live); }
+.toast a { color: var(--ink); }
+.toast button { border: 0; background: none; color: var(--muted); font-size: 1.1rem; cursor: pointer; }

@@ -1,5 +1,6 @@
 import { esc, pct, chip, statusTag, leadText, oddsText, oddsBar, raceLink, src, patch, ago, dateTimeET, OFFICE_NAME, STATUS_LABEL, PARTY_NAME } from '../ui.js';
 import { lineChart } from '../chart.js';
+import { starButton, watched } from '../watch.js';
 
 // ---------------- Races list with search and filters ----------------
 export const races = {
@@ -11,8 +12,17 @@ export const races = {
         <select id="office" aria-label="Office"><option value="">All offices</option>${['S', 'G', 'H', 'BM'].map((o) => `<option value="${o}">${OFFICE_NAME[o]}</option>`).join('')}</select>
         <select id="tier" aria-label="Tier"><option value="">All tiers</option><option value="1">Tier 1</option><option value="2">Tier 2</option><option value="3">Tier 3</option></select>
         <select id="status" aria-label="Status"><option value="">Any status</option>${Object.entries(STATUS_LABEL).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}</select>
+        <label style="display:flex;align-items:center;gap:6px;font-weight:600"><input type="checkbox" id="mine" style="width:auto"> Watchlist only</label>
       </div>
+      <p class="small muted">Star (☆) a race to pin it to the top of this list and the dashboard, and to get an in-app alert when it is called or its odds move 10 points. <button type="button" class="btn ghost" id="notify" style="padding:2px 8px">Also notify me when this tab is in the background</button></p>
       <div data-k="table"></div>`;
+    const mine = root.querySelector('#mine');
+    mine.checked = Boolean(f.mine);
+    mine.addEventListener('change', () => { f.mine = mine.checked; ctx.saveUi(); this.update(root, ctx); });
+    const nb = root.querySelector('#notify');
+    if (!('Notification' in window)) nb.hidden = true;
+    else if (Notification.permission === 'granted') nb.textContent = 'Background notifications are on';
+    nb.addEventListener('click', async () => { try { const r = await Notification.requestPermission(); nb.textContent = r === 'granted' ? 'Background notifications are on' : 'Notifications were not allowed by the browser'; } catch {} });
     for (const id of ['q', 'office', 'tier', 'status']) {
       const el = root.querySelector(`#${id}`);
       el.value = f[id];
@@ -25,11 +35,13 @@ export const races = {
     const q = f.q.trim().toLowerCase();
     let rows = ctx.state.races.filter((r) => (!f.office || r.office === f.office) && (!f.tier || String(r.tier) === f.tier) && (!f.status || r.status === f.status));
     if (q) rows = rows.filter((r) => `${r.label} ${r.stateName} ${r.state} ${r.id} ${r.leader?.name || ''} ${r.call?.winner || ''}`.toLowerCase().includes(q));
-    rows.sort((a, b) => a.tier - b.tier || a.office.localeCompare(b.office) || a.label.localeCompare(b.label, 'en', { numeric: true }));
+    const w = watched();
+    if (f.mine) rows = rows.filter((r) => w.has(r.id));
+    rows.sort((a, b) => (w.has(b.id) - w.has(a.id)) || a.tier - b.tier || a.office.localeCompare(b.office) || a.label.localeCompare(b.label, 'en', { numeric: true }));
     patch(root, {
       table: `<p class="small muted">${rows.length} races. Candidate search covers names reported by a results feed or entered in Admin.</p>
-      <div class="table-scroll"><table><thead><tr><th>Race</th><th>Tier</th><th>Status</th><th>Leader / winner</th><th>Expected vote</th><th>Market-implied</th></tr></thead><tbody>
-      ${rows.slice(0, 600).map((r) => `<tr><td><a href="${raceLink(r)}"><b>${esc(r.label)}</b></a></td><td>${r.tier}</td><td>${statusTag(r)}</td><td class="small">${leadText(r)}</td><td class="num">${r.pctExpected != null ? `${r.pctExpected}%` : '—'}</td><td class="small" style="min-width:140px">${oddsText(r.odds)}</td></tr>`).join('')}
+      <div class="table-scroll"><table><thead><tr><th><span class="sr-only">Watch</span></th><th>Race</th><th>Tier</th><th>Status</th><th>Leader / winner</th><th>Expected vote</th><th>Market-implied</th></tr></thead><tbody>
+      ${rows.slice(0, 600).map((r) => `<tr><td>${starButton(r)}</td><td><a href="${raceLink(r)}"><b>${esc(r.label)}</b></a></td><td>${r.tier}</td><td>${statusTag(r)}</td><td class="small">${leadText(r)}</td><td class="num">${r.pctExpected != null ? `${r.pctExpected}%` : '—'}</td><td class="small" style="min-width:140px">${oddsText(r.odds)}</td></tr>`).join('')}
       </tbody></table></div>`,
     });
   },
