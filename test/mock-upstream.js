@@ -13,11 +13,13 @@ export const kalshiEvents = () => [
   { event_ticker: 'SENATEZZ-26', series_ticker: 'SENATEGA', title: 'Georgia Senate winner? (TEST FIXTURE)', category: 'Elections' },
   { event_ticker: 'CONTROLS-2026', series_ticker: 'CONTROLS', title: 'Which party will control the Senate? (TEST FIXTURE)', category: 'Elections' },
   { event_ticker: 'GOVPA-26', series_ticker: 'GOVPA', title: 'Pennsylvania Governor winner? (TEST FIXTURE)', category: 'Elections' },
+  ...[['NC', 0.58], ['ME', 0.47], ['MI', 0.62], ['OH', 0.33], ['IA', 0.27], ['TX', 0.18], ['NH', 0.7], ['AK', 0.22]].map(([st, p]) => ({ event_ticker: `SENATE${st}-26`, series_ticker: `SENATE${st}`, title: `${st} Senate winner? (TEST FIXTURE)`, category: 'Elections', _p: p })),
   { event_ticker: 'SPORTS-1', series_ticker: 'NFL', title: 'Who wins the game?', category: 'Sports' },
   { event_ticker: 'WEIRD-26', series_ticker: 'WEIRD', title: 'Will the 2026 Senate race in Atlantis be close?', category: 'Elections' },
 ];
 const kalshiMarkets = (ticker) => {
-  const p = ticker === 'GOVPA-26' ? 0.71 : ticker === 'CONTROLS-2026' ? 0.38 : wobble(0.52);
+  const fixed = kalshiEvents().find((e) => e.event_ticker === ticker)?._p;
+  const p = fixed ?? (ticker === 'GOVPA-26' ? 0.71 : ticker === 'CONTROLS-2026' ? 0.38 : wobble(0.52));
   return [
     { ticker: `${ticker}-D`, yes_sub_title: 'Democratic party', yes_bid: Math.round(p * 100) - 1, yes_ask: Math.round(p * 100) + 1, last_price: Math.round(p * 100), volume: 1200000, status: 'active' },
     { ticker: `${ticker}-R`, yes_sub_title: 'Republican party', yes_bid: Math.round((1 - p) * 100) - 1, yes_ask: Math.round((1 - p) * 100) + 1, last_price: Math.round((1 - p) * 100), volume: 900000, status: 'active' },

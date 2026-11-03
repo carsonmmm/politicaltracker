@@ -40,6 +40,11 @@ const RATING_SCORE = { 'Solid D': -3, 'Safe D': -3, 'Likely D': -2, 'Lean D': -1
 export function colorFor(s, mode) {
   const none = { fill: css('--none'), label: 'No data', short: '' };
   if (!s) return { fill: css('--soft'), label: 'No race this year', short: '' };
+  if (mode === 'scenario') {
+    if (s.status === 'called' && s.call) return { fill: css(`--${s.call.party === 'D' ? 'dem' : s.call.party === 'R' ? 'rep' : 'oth'}`), label: `Called for ${PARTY_NAME[s.call.party] || 'Other'} by ${s.call.calledBy} (locked)`, short: `${s.call.party}✓` };
+    if (s._pick) return { fill: css(`--${s._pick === 'D' ? 'dem-soft' : s._pick === 'R' ? 'rep-soft' : 'oth-soft'}`), label: `Your pick: ${PARTY_NAME[s._pick]} (click to change)`, short: `${s._pick}*` };
+    return { ...none, label: 'Uncalled, no pick (click to assign)' };
+  }
   if (mode === 'called') {
     if (s.status === 'called' && s.call) return { fill: css(`--${s.call.party === 'D' ? 'dem' : s.call.party === 'R' ? 'rep' : 'oth'}`), label: `${PARTY_NAME[s.call.party] || 'Other'} winner (called by ${s.call.calledBy})`, short: `${s.call.party}✓` };
     return { ...none, label: STATUS_LABEL[s.status] || 'Not called', short: '' };

@@ -42,6 +42,13 @@ Needs Node 20 or newer. The two runtime dependencies are the map shapes (`us-atl
 * **History:** every odds and vote-count change is appended to `data/runtime/history/*.jsonl` for trend lines. Odds from before the server started are backfilled from Kalshi candlesticks and Polymarket price history.
 * **Tiers:** Tier 1 if any entered rating is Toss-up/Lean/Tilt or the market average is 15–85%. Tier 2 if rated Likely. A race moves up to Tier 1 on the night if the margin is under 5 points with at least 25% of the expected vote counted.
 
+## Simulator (`#/sim`)
+
+* **Scenario builder:** click a state on the map (no pick → D → R) or use the D/R/Oth buttons on the race list. Called races are locked, and a call overrides any pick you made.
+* **Path to majority:** the smallest number of open races each party needs, listing the ones where markets give that party the best chance.
+* **Monte Carlo:** 10,000 runs from market odds. The *shared national swing* slider sets how strongly races move together (a Gaussian copula, so each race still wins at its market chance on average). The *what-if tilt* moves every race toward one party, and is labelled as your assumption. Races with no market are left undecided, and the app reports "depends on N unpriced races" instead of guessing, unless you choose to treat them as 50/50.
+* **Save and share:** the scenario is encoded in the URL (`#/sim?c=S&a=S-GA.D,...`), so **Copy share link** sends it to anyone. **Save** keeps named scenarios in your browser. The math is in `public/js/sim.js`, tested in `test/sim.test.js`.
+
 ## Files you edit
 
 | File | Purpose | Ships as |

@@ -3,6 +3,7 @@ import * as dashboard from './views/dashboard.js';
 import * as race from './views/race.js';
 import * as lists from './views/lists.js';
 import * as admin from './views/admin.js';
+import * as sim from './views/sim.js';
 
 const app = document.getElementById('app');
 const liveEl = document.getElementById('live');
@@ -27,6 +28,7 @@ const routes = [
   [/^#\/odds$/, lists.odds],
   [/^#\/sources$/, lists.sources],
   [/^#\/admin$/, admin],
+  [/^#\/sim(?:\?(.*))?$/, sim, (m) => ({ query: m[1] || '' })],
 ];
 
 let current = null;
@@ -37,7 +39,7 @@ async function route() {
     if (m) {
       ctx.params = params ? params(m) : {};
       current = view;
-      document.querySelectorAll('.nav a').forEach((a) => a.toggleAttribute('aria-current', a.getAttribute('href') === h || (h.startsWith('#/race/') && a.getAttribute('href') === '#/races')));
+      document.querySelectorAll('.nav a').forEach((a) => a.toggleAttribute('aria-current', a.getAttribute('href') === h.split('?')[0] || (h.startsWith('#/race/') && a.getAttribute('href') === '#/races')));
       if (current.mount) { a11yTitle(); await current.mount(app, ctx); }
       else { app.innerHTML = current.render(ctx); }
       window.scrollTo(0, 0);
