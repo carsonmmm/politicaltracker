@@ -2,6 +2,15 @@
 
 Live tracker for the November 3, 2026 U.S. midterms: vote counts, Kalshi and Polymarket odds, balance of power, and race context. Every number carries `source`, `source_url` and `fetched_at`. Nothing is estimated or made up; missing data shows "Not available" and the reason.
 
+## Try it in your browser (GitHub Codespaces)
+
+1. On the repo page, switch to branch `claude/friendly-feynman-bbl0xw`, then **Code → Codespaces → Create codespace**.
+2. Wait for setup. The app starts by itself (`npm start`) and opens on port 8080 with **real** Kalshi and Polymarket data.
+3. The Admin password is printed in the terminal, unless you set an `ADMIN_TOKEN` Codespaces secret.
+4. To see every screen filled with **fake** data, open a second terminal and run `npm run demo`, then open port 8081 from the **Ports** tab (password `demo`).
+
+Forwarded ports are private to your GitHub login by default. Personal accounts get a free monthly allowance of Codespaces hours. Stop the codespace when you're done.
+
 ## Run it
 
 ```bash
@@ -9,6 +18,7 @@ npm install
 ADMIN_TOKEN=pick-a-secret npm start      # http://localhost:8080
 npm run probe                            # which data sources this machine can reach
 npm test
+npm run demo                             # fake data on http://localhost:8081 (password: demo)
 ```
 
 Needs Node 20 or newer. The two runtime dependencies are the map shapes (`us-atlas`, `topojson-client`).

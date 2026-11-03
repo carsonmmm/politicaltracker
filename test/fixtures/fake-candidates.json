@@ -1,0 +1,12 @@
+{ "entries": [
+  { "raceId": "S-GA", "name": "Test Candidate-A", "party": "D", "incumbent": true, "researched_at": "2026-11-02",
+    "bio": { "birth_date": "1980-05-01", "hometown": "Testville", "education": ["Test University (B.A.)"], "career": ["Test career"], "source_url": "https://example.com/bio-a" },
+    "offices": [{ "title": "Test Office", "from": "2021", "to": null, "source_url": "https://example.com/a1" }],
+    "elections": [{ "year": 2020, "office": "U.S. Senate", "result": "Won", "pct": 50.6, "source_url": "https://example.com/a2" }],
+    "roles": [{ "title": "Test Committee", "source_url": "https://example.com/a3" }],
+    "endorsements": [{ "name": "Test Group", "type": "Organization", "date": "2026-09-01", "source_url": "https://example.com/a4" }],
+    "positions": { "economy": { "summary": "Test position text A.", "source_url": "https://example.com/a5", "date": "2026-08-01" }, "guns": { "none": true, "checked_at": "2026-11-01" } } },
+  { "raceId": "S-GA", "name": "Test Candidate-B", "party": "R", "researched_at": "2026-11-02",
+    "positions": { "economy": { "summary": "Test position text B.", "source_url": "https://example.com/b1" } } }
+ ],
+ "moments": [{ "raceId": "S-GA", "date": "2026-10-16", "type": "debate", "text": "Test debate (fixture).", "source_url": "https://example.com/m1" }] }

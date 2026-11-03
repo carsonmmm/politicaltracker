@@ -1,0 +1,17 @@
+{
+  "name": "Midterm Live",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-22-bookworm",
+  "postCreateCommand": "npm ci",
+  "postAttachCommand": "npm start",
+  "forwardPorts": [8080, 8081],
+  "portsAttributes": {
+    "8080": { "label": "Midterm Live (real data)", "onAutoForward": "openBrowser" },
+    "8081": { "label": "Midterm Live (fake demo data)", "onAutoForward": "notify" },
+    "9090": { "label": "Fake upstream (demo only)", "onAutoForward": "silent" }
+  },
+  "secrets": {
+    "ADMIN_TOKEN": { "description": "Password for the Admin page. If not set, a random one is printed in the terminal." },
+    "FEC_API_KEY": { "description": "Free key from https://api.data.gov/signup/ for full campaign-finance detail (optional)." },
+    "AP_API_KEY": { "description": "Paid AP Elections API key for live vote counts (optional)." }
+  }
+}

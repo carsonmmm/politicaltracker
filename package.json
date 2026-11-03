@@ -7,9 +7,12 @@
   "scripts": {
     "start": "node server/index.js",
     "probe": "node server/probe.js",
-    "test": "node --test test/*.test.js"
+    "test": "node --test test/*.test.js",
+    "demo": "node scripts/demo.js"
   },
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "dependencies": {
     "topojson-client": "^3.1.0",
     "us-atlas": "^3.0.1"
