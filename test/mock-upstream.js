@@ -91,6 +91,35 @@ export function createMock() {
       return json({ history: Array.from({ length: 60 }, (_, i) => ({ t: now - (60 - i) * 3600 * 4, p: 0.5 + Math.sin(i / 7) * 0.08 })) });
     }
     if (u.pathname.startsWith('/ap/elections')) return json(apBody());
+    // ---- fake OpenFEC ----
+    if (u.pathname === '/fec/elections/') {
+      if (u.searchParams.get('state') !== 'GA' || u.searchParams.get('office') !== 'senate') return json({ results: [] });
+      return json({ results: [
+        { candidate_id: 'S6GA00001', candidate_name: 'CANDIDATE-A, TEST', party_full: 'DEMOCRATIC PARTY', incumbent_challenge_full: 'Incumbent', candidate_pcc_id: 'C00000001', total_receipts: 52000000, total_disbursements: 41000000, cash_on_hand_end_period: 11000000, coverage_end_date: '2026-10-14T00:00:00' },
+        { candidate_id: 'S6GA00002', candidate_name: 'CANDIDATE-B, TEST', party_full: 'REPUBLICAN PARTY', incumbent_challenge_full: 'Challenger', candidate_pcc_id: 'C00000002', total_receipts: 23000000, total_disbursements: 20000000, cash_on_hand_end_period: 3000000, coverage_end_date: '2026-10-14T00:00:00' },
+        { candidate_id: 'S6GA00003', candidate_name: 'PRIMARYLOSER, TEST', party_full: 'REPUBLICAN PARTY', total_receipts: 4000000, total_disbursements: 4000000, cash_on_hand_end_period: 0 },
+      ] });
+    }
+    if ((m = u.pathname.match(/^\/fec\/candidate\/(\w+)\/totals\/$/))) {
+      const a = m[1] === 'S6GA00001';
+      return json({ results: [{ receipts: a ? 52000000 : 23000000, disbursements: a ? 41000000 : 20000000, last_cash_on_hand_end_period: a ? 11000000 : 3000000, individual_unitemized_contributions: a ? 21000000 : 6000000, individual_itemized_contributions: a ? 24000000 : 9000000, other_political_committee_contributions: a ? 2000000 : 3000000, political_party_committee_contributions: 50000, candidate_contribution: a ? 0 : 1000000, loans_made_by_candidate: a ? 0 : 2500000, coverage_end_date: '2026-10-14T00:00:00' }] });
+    }
+    if (u.pathname === '/fec/schedules/schedule_a/by_state/by_candidate/') {
+      const a = u.searchParams.get('candidate_id') === 'S6GA00001';
+      return json({ results: [{ state: 'GA', total: a ? 8000000 : 6000000 }, { state: 'CA', total: a ? 9000000 : 1000000 }, { state: 'NY', total: a ? 7000000 : 2000000 }] });
+    }
+    if (u.pathname === '/fec/schedules/schedule_e/by_candidate/') {
+      const a = u.searchParams.get('candidate_id') === 'S6GA00001';
+      return json({ results: [
+        { committee_id: 'C1', committee_name: 'TEST SUPER PAC ONE', support_oppose_indicator: a ? 'S' : 'O', total: 12000000 },
+        { committee_id: 'C2', committee_name: 'TEST PARTY COMMITTEE', support_oppose_indicator: a ? 'O' : 'S', total: 15000000 },
+      ] });
+    }
+    if ((m = u.pathname.match(/^\/fec\/committee\/(\w+)\/reports\/$/))) {
+      const scale = m[1] === 'C00000001' ? 1 : 0.45;
+      const ends = ['2025-03-31', '2025-06-30', '2025-09-30', '2025-12-31', '2026-03-31', '2026-06-30', '2026-09-30', '2026-10-14'];
+      return json({ results: ends.map((e, i) => ({ coverage_end_date: `${e}T00:00:00`, total_receipts_period: Math.round((3e6 + i * 1.2e6) * scale), cash_on_hand_end_period: Math.round((4e6 + i * 0.9e6) * scale), receipt_date: e })) });
+    }
     res.writeHead(404);
     res.end('{}');
   });

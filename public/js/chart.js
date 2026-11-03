@@ -1,10 +1,10 @@
 // Minimal SVG line chart. series: [{label, color, points:[{t: iso, p: 0..1}]}]
 import { esc } from './ui.js';
 
-export function lineChart(series, { height = 200, width = 640, yMax = 1, yFmt = (v) => `${Math.round(v * 100)}%`, title = 'Chart' } = {}) {
+export function lineChart(series, { height = 200, width = 640, yMax = 1, yFmt = (v) => `${Math.round(v * 100)}%`, title = 'Chart', padLeft = 36 } = {}) {
   const pts = series.flatMap((s) => s.points);
   if (pts.length < 2) return '<p class="empty">Not enough history yet to draw a trend line.</p>';
-  const pad = { l: 36, r: 10, t: 10, b: 22 };
+  const pad = { l: padLeft, r: 10, t: 10, b: 22 };
   const t0 = Math.min(...pts.map((p) => Date.parse(p.t)));
   const t1 = Math.max(...pts.map((p) => Date.parse(p.t)));
   const span = Math.max(1, t1 - t0);

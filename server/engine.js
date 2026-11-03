@@ -4,6 +4,8 @@ import { STATES, BY_POSTAL, SENATE_REGULAR, SENATE_SPECIAL, GOVERNOR, SENATE_SOU
 import { raceId, nameKey, lastName, partyFromLabel } from './lib/match.js';
 import { ROOT, readJson, nowIso } from './lib/util.js';
 import { store } from './store.js';
+import { loadResearch, buildProfile, candidateKey, candidateSlug } from './profiles.js';
+import { fecLastName } from './adapters/fec.js';
 
 const cfg = (name) => readJson(path.join(ROOT, 'config', name), {});
 
@@ -64,8 +66,10 @@ export class Engine {
     this.version = 0;
     this.listeners = new Set();
     this.manual = store.load('manual.json', { results: {}, candidates: {}, ratings: [], polls: [], notes: {}, chamber: null, pollClosing: null, marketMap: {} });
-    for (const k of ['results', 'candidates', 'notes', 'marketMap']) this.manual[k] ||= {};
-    for (const k of ['ratings', 'polls']) this.manual[k] ||= [];
+    for (const k of ['results', 'candidates', 'notes', 'marketMap', 'profiles']) this.manual[k] ||= {};
+    for (const k of ['ratings', 'polls', 'moments']) this.manual[k] ||= [];
+    this.finance = store.load('finance.json', {}); // raceId -> {fetched_at, level, candidates, error}
+    this.reloadResearch();
     this.calls = store.load('calls.json', []);
     this.callKeys = new Set(this.calls.map((c) => `${c.raceId}|${c.winner}|${c.calledBy}`));
     this.snapshot = store.load('odds-snapshot.json', {}); // raceId -> {source -> record}
@@ -251,6 +255,7 @@ export class Engine {
       out.push(row);
     };
     for (const c of primary?.candidates || []) add({ name: c.name, party: c.party, incumbent: c.incumbent, source: primary.source, source_url: primary.source_url }, primary.source);
+    for (const p of this.research.profiles) if (p.raceId === rid) add({ name: p.name, party: p.party, incumbent: p.incumbent, source: 'Research file', source_url: p.source_url || p.bio?.source_url }, 'research file');
     for (const c of this.manual.candidates[rid] || []) add(c, 'Manual');
     return out;
   }
@@ -380,6 +385,64 @@ export class Engine {
     };
   }
 
+  reloadResearch() {
+    this.research = loadResearch();
+  }
+
+  profileFor(rid, cand) {
+    const k = candidateKey(rid, cand.name);
+    const research = this.research.profiles.find((p) => candidateKey(p.raceId, p.name) === k);
+    const manual = this.manual.profiles[k];
+    return buildProfile({ raceId: rid, slug: candidateSlug(cand.name), key: k, name: cand.name, party: cand.party, party_label: cand.party_label, incumbent: cand.incumbent }, research, manual);
+  }
+
+  /** Link the race's known candidates to FEC filers. FEC lists every filer, including primary losers. */
+  financeFor(rid) {
+    const race = this.byId.get(rid);
+    if (!race) return null;
+    if (race.office === 'G') return { available: false, reason: 'Governor candidates file with their state, not the FEC. State disclosure sites are not connected yet.' };
+    const f = this.finance[rid];
+    if (!f) return { available: false, reason: 'Not fetched yet. Finance is fetched daily for Tier 1 races from OpenFEC.' };
+    if (f.error && !f.candidates?.length) return { available: false, reason: `OpenFEC request failed: ${f.error}`, fetched_at: f.fetched_at };
+    const cands = this.candidatesFor(rid, this.primaryResult(rid));
+    const used = new Set();
+    const matched = cands.map((c) => {
+      const prof = this.profileFor(rid, c);
+      let row = prof.fec_id ? f.candidates.find((x) => x.fec_id === prof.fec_id) : null;
+      if (!row) {
+        const ln = lastName(c.name).replace(/[^a-z-]/g, '');
+        const hits = f.candidates.filter((x) => fecLastName(x.fec_name) === ln && !used.has(x.fec_id));
+        row = hits.find((x) => x.party === c.party) || (hits.length === 1 ? hits[0] : null);
+      }
+      if (row) used.add(row.fec_id);
+      return { name: c.name, party: c.party, slug: candidateSlug(c.name), finance: row || null, match: row ? (prof.fec_id ? 'fec_id' : 'name') : null };
+    });
+    const others = f.candidates.filter((x) => !used.has(x.fec_id));
+    const age = Date.now() - Date.parse(f.fetched_at);
+    return { available: true, fetched_at: f.fetched_at, level: f.level, stale: age > 36 * 3600_000, source: 'FEC (OpenFEC)', source_url: f.source_url, matched, others, partial_error: f.error || null };
+  }
+
+  momentsFor(rid) {
+    return [...this.research.moments.filter((m) => m.raceId === rid), ...this.manual.moments.filter((m) => m.raceId === rid).map((m) => ({ ...m, origin: 'Manual' }))].sort((a, b) => b.date.localeCompare(a.date));
+  }
+
+  candidateDetail(rid, slug) {
+    const r = this.byId.get(rid);
+    if (!r) return null;
+    const cands = this.candidatesFor(rid, this.primaryResult(rid));
+    const c = cands.find((x) => candidateSlug(x.name) === slug);
+    if (!c) return null;
+    const fin = this.financeFor(rid);
+    const mine = fin?.available ? fin.matched.find((m) => m.slug === slug) : null;
+    return {
+      race: { id: r.id, label: officeLabel(r), office: r.office, state: r.state, stateName: r.stateName },
+      candidate: c,
+      profile: this.profileFor(rid, c),
+      finance: fin?.available ? { ...fin, mine: mine?.finance || null, match: mine?.match || null } : fin,
+      opponents: cands.filter((x) => x !== c).map((x) => ({ name: x.name, party: x.party, slug: candidateSlug(x.name) })),
+    };
+  }
+
   raceDetail(rid) {
     const r = this.byId.get(rid);
     if (!r) return null;
@@ -397,6 +460,9 @@ export class Engine {
       polls: this.manual.polls.filter((p) => p.raceId === rid),
       notes: this.manual.notes[rid] || null,
       pollClose: this.pollClosing().states?.[r.state] || null,
+      finance: this.financeFor(rid),
+      profiles: this.candidatesFor(rid, resV.primary).map((c) => this.profileFor(rid, c)),
+      moments: this.momentsFor(rid),
     };
   }
 

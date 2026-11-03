@@ -4,6 +4,7 @@ import * as race from './views/race.js';
 import * as lists from './views/lists.js';
 import * as admin from './views/admin.js';
 import * as sim from './views/sim.js';
+import * as candidate from './views/candidate.js';
 
 const app = document.getElementById('app');
 const liveEl = document.getElementById('live');
@@ -24,6 +25,7 @@ function loadUi() {
 const routes = [
   [/^#?\/?$/, dashboard],
   [/^#\/race\/(.+)$/, race, (m) => ({ id: decodeURIComponent(m[1]) })],
+  [/^#\/candidate\/([^/]+)\/([^/?]+)$/, candidate, (m) => ({ raceId: decodeURIComponent(m[1]), slug: decodeURIComponent(m[2]) })],
   [/^#\/races$/, lists.races],
   [/^#\/odds$/, lists.odds],
   [/^#\/sources$/, lists.sources],
@@ -39,7 +41,7 @@ async function route() {
     if (m) {
       ctx.params = params ? params(m) : {};
       current = view;
-      document.querySelectorAll('.nav a').forEach((a) => a.toggleAttribute('aria-current', a.getAttribute('href') === h.split('?')[0] || (h.startsWith('#/race/') && a.getAttribute('href') === '#/races')));
+      document.querySelectorAll('.nav a').forEach((a) => a.toggleAttribute('aria-current', a.getAttribute('href') === h.split('?')[0] || ((h.startsWith('#/race/') || h.startsWith('#/candidate/')) && a.getAttribute('href') === '#/races')));
       if (current.mount) { a11yTitle(); await current.mount(app, ctx); }
       else { app.innerHTML = current.render(ctx); }
       window.scrollTo(0, 0);

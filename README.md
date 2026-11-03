@@ -18,7 +18,7 @@ Needs Node 20 or newer. The two runtime dependencies are the map shapes (`us-atl
 | Variable | What it turns on |
 |---|---|
 | `AP_API_KEY` | AP Elections API: live vote counts and AP race calls (paid) |
-| `FEC_API_KEY` | OpenFEC, Phase 3 (free from api.data.gov; `DEMO_KEY` used otherwise) |
+| `FEC_API_KEY` | OpenFEC campaign finance: full donor and outside-spending detail (free from api.data.gov; without it, `DEMO_KEY` gives summaries only) |
 | `CONGRESS_API_KEY` | Congress.gov, Phase 4 (free api.data.gov key) |
 | `ADMIN_TOKEN` | Fixed admin password (otherwise a random one is printed at startup) |
 | `PORT`, `DATA_DIR` | Port (8080) and where runtime data is kept (`data/runtime/`) |
@@ -49,11 +49,19 @@ Needs Node 20 or newer. The two runtime dependencies are the map shapes (`us-atl
 * **Monte Carlo:** 10,000 runs from market odds. The *shared national swing* slider sets how strongly races move together (a Gaussian copula, so each race still wins at its market chance on average). The *what-if tilt* moves every race toward one party, and is labelled as your assumption. Races with no market are left undecided, and the app reports "depends on N unpriced races" instead of guessing, unless you choose to treat them as 50/50.
 * **Save and share:** the scenario is encoded in the URL (`#/sim?c=S&a=S-GA.D,...`), so **Copy share link** sends it to anyone. **Save** keeps named scenarios in your browser. The math is in `public/js/sim.js`, tested in `test/sim.test.js`.
 
+## Candidates and money (Phase 3)
+
+* **Candidate pages** (`#/candidate/<race>/<name>`) cover biography, political history, the same ten policy issues for everyone, endorsements and campaign finance. Voting records and personal disclosures arrive in Phase 4.
+* **Race pages** add a head-to-head table of issues, a finance comparison, outside spending for and against each candidate (top spenders named), and a key-moments timeline.
+* **Finance** comes from OpenFEC for Tier 1 Senate and House races (see `docs/DATA.md`). The FEC lists everyone who filed, so the app links filers to the race's known candidates by last name and party, or by an FEC ID set in Admin. Everyone else appears under "Other FEC filers". Governor finance is reported to the states and shows as Not available.
+* **Profiles** come from `data/candidates-research.json` (ships empty) and Admin → Candidate profile.
+
 ## Files you edit
 
 | File | Purpose | Ships as |
 |---|---|---|
 | `data/results-research.json` | Fallback results refreshed by research (see `docs/DATA.md`) | empty |
+| `data/candidates-research.json` | Candidate profiles and key moments | empty |
 | `config/ratings.json` | Dated expert ratings | empty |
 | `config/market-map.json` | Force a market onto a race, or ignore it | empty |
 | `config/chamber.json` | Seats not up in 2026 | **unverified**, builder-compiled |
@@ -69,7 +77,8 @@ Everything can also be entered or corrected in the **Admin** page, where entries
 ```bash
 node test/mock-upstream.js &
 DATA_DIR=/tmp/mock KALSHI_BASE=http://localhost:9090/kalshi POLYMARKET_BASE=http://localhost:9090/poly \
-POLYMARKET_CLOB=http://localhost:9090/clob AP_BASE=http://localhost:9090/ap AP_API_KEY=fake npm start
+POLYMARKET_CLOB=http://localhost:9090/clob AP_BASE=http://localhost:9090/ap AP_API_KEY=fake \
+FEC_BASE=http://localhost:9090/fec FEC_API_KEY=fake npm start
 ```
 
 Never point a real deployment at it.

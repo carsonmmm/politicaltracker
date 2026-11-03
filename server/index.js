@@ -9,6 +9,7 @@ import { ROOT, nowIso } from './lib/util.js';
 import { STATUSES } from './adapters/results.js';
 import { partyFromLabel } from './lib/match.js';
 import { store } from './store.js';
+import { validateProfile, validateMoment, candidateKey, ISSUES, MOMENT_TYPES } from './profiles.js';
 
 const PORT = Number(process.env.PORT || 8080);
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN || crypto.randomBytes(9).toString('base64url');
@@ -128,9 +129,29 @@ const admin = {
     engine.manual.pollClosing ||= { states: {} };
     engine.manual.pollClosing.states[b.state] = { first: b.first, last: b.last, source_url: b.source_url || null, manual: true };
   },
+  profile(b) {
+    need(engine.byId.has(b.raceId), 'Unknown raceId');
+    need(b.name, 'name required');
+    need(!b.fec_id || /^[HS]\d[A-Z]{2}\d{5}$/.test(b.fec_id), 'fec_id looks like H6GA07123 or S6GA00123');
+    const problems = validateProfile(b);
+    need(!problems.length, problems.join('; '));
+    const { raceId, name } = b;
+    const clean = { raceId, name, fec_id: b.fec_id || undefined, bio: b.bio, offices: b.offices, elections: b.elections, roles: b.roles, endorsements: b.endorsements, positions: b.positions, entered_at: nowIso() };
+    engine.manual.profiles[candidateKey(raceId, name)] = JSON.parse(JSON.stringify(clean));
+  },
+  moment(b) {
+    const problems = validateMoment(b);
+    need(!problems.length, problems.join('; '));
+    need(engine.byId.has(b.raceId), 'Unknown raceId');
+    engine.manual.moments.push({ raceId: b.raceId, date: b.date, type: b.type, text: String(b.text).slice(0, 500), source_url: b.source_url, entered_at: nowIso() });
+  },
   delete(b) {
     const { kind, raceId, index } = b;
-    if (kind === 'result') delete engine.manual.results[raceId];
+    if (kind === 'profile') delete engine.manual.profiles[b.key];
+    else if (kind === 'moment') {
+      const own = engine.manual.moments.map((r, i) => [r, i]).filter(([r]) => r.raceId === raceId);
+      if (own[index]) engine.manual.moments.splice(own[index][1], 1);
+    } else if (kind === 'result') delete engine.manual.results[raceId];
     else if (kind === 'candidate') engine.manual.candidates[raceId]?.splice(index, 1);
     else if (kind === 'rating' || kind === 'poll') {
       const arr = engine.manual[kind === 'rating' ? 'ratings' : 'polls'];
@@ -150,6 +171,12 @@ const server = http.createServer(async (req, res) => {
       const d = engine.raceDetail(decodeURIComponent(p.slice(10)));
       return d ? send(res, 200, d) : send(res, 404, { error: 'unknown race' });
     }
+    if (p.startsWith('/api/candidate/')) {
+      const [rid, slug] = p.slice(15).split('/').map(decodeURIComponent);
+      const d = engine.candidateDetail(rid, slug);
+      return d ? send(res, 200, d) : send(res, 404, { error: 'unknown candidate' });
+    }
+    if (p === '/api/meta') return send(res, 200, { issues: ISSUES, momentTypes: MOMENT_TYPES });
     if (p === '/api/control') {
       return send(res, 200, { 'CONTROL-S': { ...engine.oddsView('CONTROL-S'), history: engine.oddsHistory.get('CONTROL-S') || [] }, 'CONTROL-H': { ...engine.oddsView('CONTROL-H'), history: engine.oddsHistory.get('CONTROL-H') || [] } });
     }

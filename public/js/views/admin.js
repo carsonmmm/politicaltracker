@@ -1,6 +1,7 @@
 import { esc, dateTimeET } from '../ui.js';
 
 const STATUSES = { not_reporting: 'Not yet reporting', counting: 'Counting — not called', too_early: 'Too early to call', too_close: 'Too close to call', called: 'Called', recount: 'Recount', runoff: 'Runoff' };
+const ISSUES = [['economy', 'Economy and taxes'],['health', 'Health care'],['immigration', 'Immigration'],['abortion', 'Abortion'],['energy', 'Energy and climate'],['guns', 'Guns'],['education', 'Education'],['foreign', 'Foreign policy and defense'],['crime', 'Crime and policing'],['democracy', 'Elections and democracy']];
 const RATINGS = ['Solid D', 'Likely D', 'Lean D', 'Tilt D', 'Toss-up', 'Tilt R', 'Lean R', 'Likely R', 'Solid R'];
 let token = '';
 try { token = sessionStorage.getItem('adminToken') || ''; } catch {}
@@ -79,6 +80,32 @@ export async function mount(root, ctx) {
         <label>Source URL <input name="source_url" type="url"></label>
         <button class="btn">Save</button><div class="msg" data-msg></div></form></section>
     </div>
+    <section class="panel" style="margin-top:16px"><h2>Candidate profile</h2>
+      <p class="small muted">Every candidate uses the same template. Write position summaries in neutral language based on the candidate's own statement, and link that statement. Mark an issue "none found" only after looking. Leave it untouched if nobody has checked.</p>
+      <form class="admin" id="f-profile">
+        <div class="row3"><label>Race ID <input name="raceId" list="races" required></label><label>Candidate name <input name="name" list="cand-names" required></label><label>FEC candidate ID <input name="fec_id" placeholder="S6GA00123 (optional)"></label></div>
+        <datalist id="cand-names"></datalist>
+        <button class="btn ghost" type="button" id="p-load">Load existing profile</button>
+        <fieldset style="border:1px solid var(--line);border-radius:6px"><legend class="small">Biography</legend>
+          <div class="row3"><label>Birth date <input name="birth_date" type="date"></label><label>Hometown <input name="hometown"></label><label>Bio source URL <input name="bio_url" type="url"></label></div>
+          <div class="row2"><label>Education (one per line)<textarea name="education" rows="2"></textarea></label><label>Career before politics (one per line)<textarea name="career" rows="2"></textarea></label></div>
+        </fieldset>
+        <div class="row2"><label>Offices held: Title | From | To | URL<textarea name="offices" rows="3" placeholder="U.S. Representative, GA-06 | 2019 | 2023 | https://..."></textarea></label>
+        <label>Past elections: Year | Office | Result | Pct | URL<textarea name="elections" rows="3" placeholder="2020 | U.S. Senate | Won | 50.6 | https://..."></textarea></label></div>
+        <div class="row2"><label>Committee seats / leadership: Title | URL<textarea name="roles" rows="2"></textarea></label>
+        <label>Endorsements: Name | Type | Date | URL<textarea name="endorsements" rows="2" placeholder="Example Union | Labor union | 2026-09-01 | https://..."></textarea></label></div>
+        <fieldset style="border:1px solid var(--line);border-radius:6px"><legend class="small">Policy positions</legend>
+          ${ISSUES.map(([k, l]) => `<div style="border-bottom:1px solid var(--line);padding:6px 0"><b class="small">${l}</b>
+            <div class="row3"><label>Neutral summary <textarea name="pos_${k}" rows="1"></textarea></label><label>Candidate's statement URL <input name="url_${k}" type="url"></label><label>Statement date <input name="date_${k}" type="date"></label></div>
+            <label><span><input type="checkbox" name="none_${k}" style="width:auto"> Searched: no stated position found</span></label></div>`).join('')}
+        </fieldset>
+        <button class="btn">Save profile</button><div class="msg" data-msg></div>
+      </form></section>
+    <section class="panel" style="margin-top:16px"><h2>Key moment</h2>
+      <form class="admin" id="f-moment"><div class="row3"><label>Race ID <input name="raceId" list="races" required></label><label>Date <input name="date" type="date" required></label><label>Type <select name="type"><option value="debate">Debate</option><option value="ad">Major ad</option><option value="endorsement">Endorsement</option><option value="controversy">Controversy</option><option value="event">Event</option><option value="other">Other</option></select></label></div>
+        <label>What happened (neutral, factual) <input name="text" required maxlength="500"></label>
+        <label>Source URL (required for every entry) <input name="source_url" type="url" required></label>
+        <button class="btn">Save moment</button><div class="msg" data-msg></div></form></section>
     <section class="panel" style="margin-top:16px"><h2>Manual entries</h2><div id="entries"></div></section>`;
   wire(root, ctx);
   loadSide(root, ctx);
@@ -137,6 +164,22 @@ function wire(root, ctx) {
     try { j = JSON.parse(f.json.value); } catch { throw new Error('Baseline is not valid JSON'); }
     return ['chamber', { ...j, verified: f.verified.checked, source_url: f.source_url.value.trim() || j.source_url, source: f.verified.checked ? 'Manual (verified)' : 'Manual' }];
   });
+  on('#f-moment', (f) => ['moment', { raceId: f.raceId.value.trim(), date: f.date.value, type: f.type.value, text: f.text.value.trim(), source_url: f.source_url.value.trim() }]);
+  on('#f-profile', (f) => ['profile', profileBody(f)]);
+  const pf = root.querySelector('#f-profile');
+  pf.raceId.addEventListener('change', async () => {
+    const r = await fetch(`/api/race/${encodeURIComponent(pf.raceId.value.trim())}`).then((x) => (x.ok ? x.json() : null));
+    root.querySelector('#cand-names').innerHTML = (r?.candidates || []).map((c) => `<option value="${esc(c.name)}">`).join('');
+  });
+  root.querySelector('#p-load').addEventListener('click', async () => {
+    const r = await fetch(`/api/race/${encodeURIComponent(pf.raceId.value.trim())}`).then((x) => (x.ok ? x.json() : null));
+    const prof = r?.profiles.find((x) => x.name.toLowerCase() === pf.name.value.trim().toLowerCase());
+    const msgEl = pf.querySelector('[data-msg]');
+    if (!prof) { msgEl.className = 'msg err'; msgEl.textContent = 'No candidate by that name in this race. Add the candidate first (Add a candidate) or check spelling.'; return; }
+    fillProfile(pf, prof);
+    msgEl.className = 'msg ok';
+    msgEl.textContent = prof.researched ? 'Loaded.' : 'No profile yet; the form is empty.';
+  });
   // Pre-fill the result form from the current record when a race is chosen.
   root.querySelector('#f-result').raceId.addEventListener('change', async (e) => {
     const r = await fetch(`/api/race/${encodeURIComponent(e.target.value)}`).then((x) => (x.ok ? x.json() : null));
@@ -173,13 +216,61 @@ async function loadSide(root, ctx) {
   const idx = {};
   for (const r of manual.ratings) { idx[`rating${r.raceId}`] = (idx[`rating${r.raceId}`] ?? -1) + 1; rows.push(['rating', r.raceId, idx[`rating${r.raceId}`], `${r.outlet}: ${r.rating} (${r.date})`, r.entered_at]); }
   for (const r of manual.polls) { idx[`poll${r.raceId}`] = (idx[`poll${r.raceId}`] ?? -1) + 1; rows.push(['poll', r.raceId, idx[`poll${r.raceId}`], `${r.average}: ${r.values.map((v) => `${v.name} ${v.pct}%`).join(', ')} (${r.date})`, r.entered_at]); }
+  for (const [key, pr] of Object.entries(manual.profiles || {})) rows.push(['profile', pr.raceId, key, `${pr.name} profile`, pr.entered_at]);
+  for (const m of manual.moments || []) { idx[`moment${m.raceId}`] = (idx[`moment${m.raceId}`] ?? -1) + 1; rows.push(['moment', m.raceId, idx[`moment${m.raceId}`], `${m.date} ${m.type}: ${m.text}`, m.entered_at]); }
   const el = root.querySelector('#entries');
   el.innerHTML = rows.length
-    ? `<div class="table-scroll"><table><thead><tr><th>Type</th><th>Race</th><th>Entry</th><th>Entered</th><th></th></tr></thead><tbody>${rows.map(([k, rid, i, text, at]) => `<tr><td>${esc(k)}</td><td><a href="#/race/${encodeURIComponent(rid)}">${esc(rid)}</a></td><td class="small">${esc(text)}</td><td class="small">${esc(dateTimeET(at))}</td><td><button class="btn ghost" data-del="${esc(JSON.stringify({ kind: k, raceId: rid, index: i }))}">Delete</button></td></tr>`).join('')}</tbody></table></div>`
+    ? `<div class="table-scroll"><table><thead><tr><th>Type</th><th>Race</th><th>Entry</th><th>Entered</th><th></th></tr></thead><tbody>${rows.map(([k, rid, i, text, at]) => `<tr><td>${esc(k)}</td><td><a href="#/race/${encodeURIComponent(rid)}">${esc(rid)}</a></td><td class="small">${esc(text)}</td><td class="small">${esc(dateTimeET(at))}</td><td><button class="btn ghost" data-del="${esc(JSON.stringify(k === 'profile' ? { kind: k, raceId: rid, key: i } : { kind: k, raceId: rid, index: i }))}">Delete</button></td></tr>`).join('')}</tbody></table></div>`
     : '<p class="empty">No manual entries yet.</p>';
   el.querySelectorAll('[data-del]').forEach((b) => b.addEventListener('click', async () => {
     if (!confirm('Delete this manual entry?')) return;
     await api('delete', JSON.parse(b.dataset.del));
     loadSide(root, ctx);
   }));
+}
+
+const pipe = (v) => lines(v || '');
+function profileBody(f) {
+  const positions = {};
+  for (const [k] of ISSUES) {
+    const summary = f[`pos_${k}`].value.trim();
+    if (f[`none_${k}`].checked) positions[k] = { none: true, checked_at: new Date().toISOString().slice(0, 10) };
+    else if (summary) positions[k] = { summary, source_url: f[`url_${k}`].value.trim(), date: f[`date_${k}`].value || undefined };
+  }
+  const listOf = (name) => f[name].value.split('\n').map((x) => x.trim()).filter(Boolean);
+  const bio = { birth_date: f.birth_date.value || undefined, hometown: f.hometown.value.trim() || undefined, education: listOf('education'), career: listOf('career'), source_url: f.bio_url.value.trim() || undefined };
+  if (!bio.education.length) delete bio.education;
+  if (!bio.career.length) delete bio.career;
+  return {
+    raceId: f.raceId.value.trim(),
+    name: f.name.value.trim(),
+    fec_id: f.fec_id.value.trim().toUpperCase() || undefined,
+    bio,
+    offices: pipe(f.offices.value).map(([title, from, to, source_url]) => ({ title, from, to, source_url })),
+    elections: pipe(f.elections.value).map(([year, office, result, pct, source_url]) => ({ year, office, result, pct: pct ? Number(pct) : null, source_url })),
+    roles: pipe(f.roles.value).map(([title, source_url]) => ({ title, source_url })),
+    endorsements: pipe(f.endorsements.value).map(([name, type, date, source_url]) => ({ name, type, date, source_url })),
+    positions,
+  };
+}
+
+function fillProfile(f, p) {
+  f.fec_id.value = p.fec_id || '';
+  const b = p.bio || {};
+  f.birth_date.value = b.birth_date || '';
+  f.hometown.value = b.hometown || '';
+  f.bio_url.value = b.source_url || '';
+  f.education.value = (b.education || []).join('\n');
+  f.career.value = (b.career || []).join('\n');
+  f.offices.value = p.offices.map((o) => [o.title, o.from || '', o.to || '', o.source_url].join(' | ')).join('\n');
+  f.elections.value = p.elections.map((o) => [o.year, o.office, o.result || '', o.pct ?? '', o.source_url].join(' | ')).join('\n');
+  f.roles.value = p.roles.map((o) => [o.title, o.source_url].join(' | ')).join('\n');
+  f.endorsements.value = p.endorsements.map((o) => [o.name, o.type || '', o.date || '', o.source_url].join(' | ')).join('\n');
+  for (const [k] of ISSUES) {
+    const x = p.positions[k] || {};
+    f[`pos_${k}`].value = x.status === 'stated' ? x.summary : '';
+    f[`url_${k}`].value = x.status === 'stated' ? x.source_url : '';
+    f[`date_${k}`].value = x.status === 'stated' ? x.date || '' : '';
+    f[`none_${k}`].checked = x.status === 'none';
+  }
 }

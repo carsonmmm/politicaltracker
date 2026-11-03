@@ -1,6 +1,7 @@
 import { esc, pct, num, compact, chip, statusTag, leadText, oddsText, oddsBar, src, patch, dateTimeET, PARTY_NAME, OFFICE_NAME, STATUS_LABEL, notAvailable } from '../ui.js';
 import { lineChart } from '../chart.js';
 import { renderCountyMap } from '../map.js';
+import { comparison } from '../finance.js';
 
 const FIPS = { AL: '01', AK: '02', AZ: '04', AR: '05', CA: '06', CO: '08', CT: '09', DE: '10', FL: '12', GA: '13', HI: '15', ID: '16', IL: '17', IN: '18', IA: '19', KS: '20', KY: '21', LA: '22', ME: '23', MD: '24', MA: '25', MI: '26', MN: '27', MS: '28', MO: '29', MT: '30', NE: '31', NV: '32', NH: '33', NJ: '34', NM: '35', NY: '36', NC: '37', ND: '38', OH: '39', OK: '40', OR: '41', PA: '42', RI: '44', SC: '45', SD: '46', TN: '47', TX: '48', UT: '49', VT: '50', VA: '51', WA: '53', WV: '54', WI: '55', WY: '56' };
 let detail = null;
@@ -19,7 +20,13 @@ export async function mount(root, ctx) {
       <section class="panel" aria-label="Candidates"><div data-k="cands"></div></section>
       <section class="panel" aria-label="Ratings and polls"><div data-k="ratings"></div></section>
       <section class="panel" aria-label="Race details"><div data-k="facts"></div></section>
-    </div>`;
+    </div>
+    <section class="panel" style="margin-top:16px" aria-label="Head-to-head"><div data-k="h2h"></div></section>
+    <div class="grid g2" style="margin-top:16px">
+      <section class="panel" aria-label="Campaign finance comparison"><div data-k="money"></div></section>
+      <section class="panel" aria-label="Outside spending"><div data-k="outside"></div></section>
+    </div>
+    <section class="panel" style="margin-top:16px" aria-label="Key moments"><div data-k="moments"></div></section>`;
   await load(root, ctx, true);
 }
 
@@ -37,7 +44,7 @@ async function load(root, ctx, force) {
   detail = await r.json();
   const d = detail;
   document.title = `${d.label} — Midterm Live`;
-  patch(root, { head: head(d), results: results(d), odds: odds(d), ohist: oddsHistory(d), cands: candidates(d), ratings: ratings(d), facts: facts(d) }, force);
+  patch(root, { head: head(d), results: results(d), odds: odds(d), ohist: oddsHistory(d), cands: candidates(d), ratings: ratings(d), facts: facts(d), h2h: headToHead(d), money: money(d), outside: outside(d), moments: moments(d) }, force);
   const p = d.results.primary;
   const cKey = JSON.stringify(p?.counties || []);
   const el = root.querySelector('#county');
@@ -136,8 +143,8 @@ function oddsHistory(d) {
 function candidates(d) {
   let html = '<header><h2>Candidates</h2></header>';
   if (!d.candidates.length) return html + notAvailable('no candidate list has been loaded for this race. Candidates come from the results feed, the research file, or Admin entries.');
-  html += `<ul class="feed">${d.candidates.map((c) => `<li>${chip(c.party)} <b>${esc(c.name)}</b>${c.incumbent ? ' <span class="tag">Incumbent</span>' : ''} <span class="small muted">${esc(PARTY_NAME[c.party] || c.party_label || 'Other')}</span><div class="src">${c.source_url ? `<a href="${esc(c.source_url)}" target="_blank" rel="noopener">${esc(c.source || c.origin)}</a>` : esc(c.source || c.origin)}</div></li>`).join('')}</ul>`;
-  return html + '<p class="tiny muted">Full profiles, policy positions and finance arrive in Phase 3.</p>';
+  html += `<ul class="feed">${d.candidates.map((c) => `<li>${chip(c.party)} <a href="${profileHref(d, c.name)}"><b>${esc(c.name)}</b></a>${c.incumbent ? ' <span class="tag">Incumbent</span>' : ''} <span class="small muted">${esc(PARTY_NAME[c.party] || c.party_label || 'Other')}</span><div class="src">${c.source_url ? `<a href="${esc(c.source_url)}" target="_blank" rel="noopener">${esc(c.source || c.origin)}</a>` : esc(c.source || c.origin)}</div></li>`).join('')}</ul>`;
+  return html + '<p class="tiny muted">Open a name for the full profile: biography, positions, endorsements and finance.</p>';
 }
 
 function ratings(d) {
@@ -166,4 +173,43 @@ function facts(d) {
       <dt>Past results</dt><dd class="muted">Not available — Phase 4 (MIT Election Lab, Cook PVI)</dd>
       <dt>Seat list</dt><dd><a href="${esc(d.race.catalog_source_url)}" target="_blank" rel="noopener">Ballotpedia</a></dd>
     </dl>`;
+}
+
+function profileHref(d, name) {
+  const p = d.profiles.find((x) => x.name === name);
+  return p ? `#/candidate/${encodeURIComponent(d.id)}/${encodeURIComponent(p.slug)}` : '#';
+}
+
+function headToHead(d) {
+  const ps = d.profiles;
+  let html = '<header><h2>Head-to-head</h2><span class="small muted">Same issues for every candidate, from their own statements</span></header>';
+  if (ps.length < 2) return html + notAvailable(ps.length ? 'only one candidate is listed for this race so far' : 'no candidates are listed for this race yet');
+  const issues = Object.keys(ps[0].positions);
+  const cell = (x) => (x.status === 'stated' ? `${esc(x.summary)}<div class="src"><a href="${esc(x.source_url)}" target="_blank" rel="noopener">statement</a></div>` : x.status === 'none' ? 'No stated position found.' : '<span class="muted">Not yet researched</span>');
+  return html + `<div class="table-scroll"><table><thead><tr><th>Issue</th>${ps.map((p) => `<th><a href="${profileHref(d, p.name)}">${chip(p.party)} ${esc(p.name)}</a></th>`).join('')}</tr></thead><tbody>
+    ${issues.map((k) => `<tr><td><b>${esc(ps[0].positions[k].label)}</b></td>${ps.map((p) => `<td class="small" style="min-width:180px">${cell(p.positions[k])}</td>`).join('')}</tr>`).join('')}
+    </tbody></table></div>`;
+}
+
+function money(d) {
+  return `<header><h2>Campaign finance</h2><span class="small muted">Raw figures, no score or grade</span></header>${comparison(d.finance, d.id)}`;
+}
+
+function outside(d) {
+  let html = '<header><h2>Outside spending</h2><span class="small muted">Super PACs, parties and groups (FEC Schedule E)</span></header>';
+  const f = d.finance;
+  if (!f?.available) return html + notAvailable(f?.reason || 'no finance data');
+  const rows = f.matched.filter((m) => m.finance);
+  if (!rows.length) return html + notAvailable('no candidate in this race is matched to an FEC filing yet');
+  if (!rows.some((m) => m.finance.detail)) return html + notAvailable('outside-spending detail needs a free FEC_API_KEY (DEMO_KEY only allows summaries)');
+  const list = (l) => (l?.length ? `<ol class="small" style="padding-left:18px;margin:2px 0 8px">${l.slice(0, 5).map((s) => `<li>${esc(s.name)} — $${compact(s.total)}</li>`).join('')}</ol>` : '<p class="small muted" style="margin:2px 0 8px">None reported.</p>');
+  return html + rows.map((m) => `<div style="margin-bottom:10px"><h3>${chip(m.party)} ${esc(m.name)}</h3>
+    <div class="row2"><div><b>For: $${compact(m.finance.outside_for_total || 0)}</b>${list(m.finance.outside_for)}</div><div><b>Against: $${compact(m.finance.outside_against_total || 0)}</b>${list(m.finance.outside_against)}</div></div></div>`).join('');
+}
+
+const MOMENT_LABEL = { debate: 'Debate', ad: 'Ad', endorsement: 'Endorsement', controversy: 'Controversy', event: 'Event', other: 'Other' };
+function moments(d) {
+  let html = '<header><h2>Key moments</h2><span class="small muted">Each entry links to its source; the same standard applies to every candidate</span></header>';
+  if (!d.moments.length) return html + notAvailable('no key moments have been entered for this race');
+  return html + `<ul class="feed" style="max-height:none">${d.moments.map((m) => `<li><span class="num small muted">${esc(m.date)}</span> <span class="tag">${esc(MOMENT_LABEL[m.type] || m.type)}</span> ${esc(m.text)} <span class="src"><a href="${esc(m.source_url)}" target="_blank" rel="noopener">source</a>${m.origin === 'Manual' ? ' <span class="tag manual">Manual</span>' : ''}</span></li>`).join('')}</ul>`;
 }

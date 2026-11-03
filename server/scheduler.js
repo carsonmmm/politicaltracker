@@ -4,7 +4,10 @@ import { createPolymarketAdapter, polymarketHistory } from './adapters/polymarke
 import { createApAdapter, createDdhqAdapter, createFileAdapter } from './adapters/results.js';
 import { intervals } from './engine.js';
 import { store } from './store.js';
-import { mapLimit } from './lib/util.js';
+import { mapLimit, nowIso } from './lib/util.js';
+import { createFecAdapter, hasRealKey } from './adapters/fec.js';
+import { lastName } from './lib/match.js';
+import { fecLastName } from './adapters/fec.js';
 
 const HISTORY_START = Date.parse(process.env.HISTORY_START || '2026-09-01T00:00:00Z');
 
@@ -69,6 +72,31 @@ export function startScheduler(engine, { fetchImpl } = {}) {
       engine.bump('results');
     }, () => (feed.source === 'Results file' ? 15_000 : intervals().results));
   }
+  // Candidate research file: re-read every 30 s so edits show up without a restart.
+  loop('Candidate research file', async () => {
+    engine.reloadResearch();
+    engine.feedOk('Candidate research file', { interval_ms: 30_000, records: engine.research.profiles.length, partial_errors: engine.research.errors.slice(0, 5) });
+  }, () => 30_000);
+
+  // Campaign finance: Tier 1 Senate/House races, once a day, rate-limited.
+  const fec = createFecAdapter({ fetchImpl });
+  let financeRunning = false;
+  let financeWarm = false; // poll every 30 s until odds have loaded and Tier 1 exists
+  loop('OpenFEC', async () => {
+    if (financeRunning) return;
+    financeRunning = true;
+    try {
+      const n = await refreshFinance(engine, fec);
+      if (n > 0 || Object.keys(engine.finance).length) financeWarm = true;
+      engine.feedOk('OpenFEC', { interval_ms: FINANCE_EVERY, races_refreshed: n, races_cached: Object.keys(engine.finance).length, key: hasRealKey() ? 'FEC_API_KEY' : 'DEMO_KEY (summaries only; set FEC_API_KEY for donor detail)', calls: fec.calls() });
+    } catch (err) {
+      financeWarm = true; // feed down: back off to the normal 10-minute check
+      throw err;
+    } finally {
+      financeRunning = false;
+    }
+  }, () => (financeWarm ? FINANCE_EVERY : 30_000));
+
   // Manual entries are loaded once at start and re-merged on every edit.
   engine.ingestResults('Manual', Object.values(engine.manual.results));
   engine.feedOk('Manual', { interval_ms: null });
@@ -93,4 +121,46 @@ export function startScheduler(engine, { fetchImpl } = {}) {
   }
 
   return { stop: () => timers.forEach(clearTimeout) };
+}
+
+const FINANCE_EVERY = 10 * 60_000; // checks every 10 min for Tier 1 races whose data is over a day old (or new to Tier 1)
+
+export async function refreshFinance(engine, fec, { maxAgeMs = 24 * 3600_000 } = {}) {
+  const races = engine.state().races
+    .filter((r) => r.tier === 1 && (r.office === 'S' || r.office === 'H'))
+    .filter((r) => !engine.finance[r.id] || Date.now() - Date.parse(engine.finance[r.id].fetched_at) > maxAgeMs || engine.finance[r.id].error);
+  let done = 0;
+  let lastErr = null;
+  for (const r of races) {
+    const race = engine.byId.get(r.id);
+    const rec = { fetched_at: nowIso(), level: 'summary', candidates: [], source_url: `https://www.fec.gov/data/elections/${race.office === 'S' ? 'senate' : 'house'}/${race.state.toLowerCase()}/${race.office === 'H' ? `${String(race.district).padStart(2, '0')}/` : ''}2026/` };
+    try {
+      rec.candidates = await fec.raceSummary(race);
+      if (hasRealKey()) {
+        // Detail for the race's known candidates, or the top two fundraisers if none are known yet.
+        const known = engine.candidatesFor(r.id, engine.primaryResult(r.id));
+        const targets = known.length
+          ? rec.candidates.filter((c) => known.some((k) => fecLastName(c.fec_name) === lastName(k.name).replace(/[^a-z-]/g, '')))
+          : rec.candidates.slice(0, 2);
+        for (const t of targets.slice(0, 4)) {
+          const i = rec.candidates.indexOf(t);
+          try { rec.candidates[i] = await fec.candidateDetail(t, race.state); }
+          catch (err) { rec.error = `detail for ${t.name}: ${err.message}`; }
+        }
+        rec.level = 'full';
+      }
+    } catch (err) {
+      rec.error = err.message;
+      lastErr = err;
+    }
+    const prev = engine.finance[r.id];
+    // On failure keep the last good copy with its original fetched_at, so it is labelled stale correctly.
+    engine.finance[r.id] = rec.error && !rec.candidates.length && prev?.candidates?.length ? { ...prev, error: rec.error, last_attempt: rec.fetched_at } : rec;
+    store.save('finance.json', engine.finance);
+    engine.bump('finance');
+    done++;
+    if (lastErr && done === 1 && !rec.candidates.length) throw lastErr;
+    lastErr = null; // feed is down; stop this pass
+  }
+  return done;
 }
