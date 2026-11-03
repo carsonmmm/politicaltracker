@@ -2,6 +2,7 @@
 import { createKalshiAdapter, kalshiHistory } from './adapters/kalshi.js';
 import { createPolymarketAdapter, polymarketHistory } from './adapters/polymarket.js';
 import { createApAdapter, createDdhqAdapter, createFileAdapter } from './adapters/results.js';
+import { createStateSitesAdapter } from './adapters/state-sites.js';
 import { intervals } from './engine.js';
 import { store } from './store.js';
 import { mapLimit, nowIso } from './lib/util.js';
@@ -17,7 +18,7 @@ export function startScheduler(engine, { fetchImpl } = {}) {
   const marketMap = () => engine.marketMap();
   let kalshi = createKalshiAdapter({ fetchImpl, marketMap: marketMap() });
   let poly = createPolymarketAdapter({ fetchImpl, marketMap: marketMap() });
-  const resultFeeds = [createApAdapter({ fetchImpl, measureLookup: (st, label, id) => engine.measureLookup(st, label, id) }), createDdhqAdapter(), createFileAdapter()];
+  const resultFeeds = [createApAdapter({ fetchImpl, measureLookup: (st, label, id) => engine.measureLookup(st, label, id) }), createDdhqAdapter(), createStateSitesAdapter({ fetchImpl }), createFileAdapter()];
   const backfilled = new Set(store.load('backfilled.json', []));
   const stops = [];
 

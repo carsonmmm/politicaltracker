@@ -28,6 +28,7 @@ setTimeout(() => {
     ADMIN_TOKEN: 'demo',
     CANDIDATES_FILE: path.join(root, 'test/fixtures/fake-candidates.json'),
     MEASURES_FILE: path.join(root, 'test/fixtures/fake-measures.json'),
+    STATE_FEEDS_FILE: path.join(root, 'test/fixtures/state-feeds.json'),
     DATAVERSE_BASE: `${up}/dataverse`,
     VOTEVIEW_BASE: `${up}/voteview`,
     CONGRESS_BASE: `${up}/congress`,

@@ -1,0 +1,1 @@
+{ "feeds": [{ "state": "NV", "type": "clarity", "url": "http://localhost:9090/clarity/NV/1/", "name": "Nevada results site (TEST FIXTURE)", "source_url": "http://localhost:9090/clarity/NV/1/" }] }

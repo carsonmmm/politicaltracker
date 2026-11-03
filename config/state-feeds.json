@@ -1,0 +1,4 @@
+{
+  "_note": "State election office result sites to read when there is no AP/DDHQ key. Ships EMPTY: each state's 2026 results URL is only known once the state publishes it on election night. Supported type: 'clarity' (Clarity/Scytl ENR sites). Example entry: { \"state\": \"XX\", \"type\": \"clarity\", \"url\": \"https://results.enr.clarityelections.com/XX/<electionId>/\", \"name\": \"XX Secretary of State\", \"source_url\": \"<public results page>\" }. Contests are matched to races by name (U.S. Senate, Governor, U.S. House district N, ballot questions). State sites do not call races.",
+  "feeds": []
+}

@@ -46,7 +46,7 @@ Needs Node 20 or newer. The two runtime dependencies are the map shapes (`us-atl
 
 * **Server-side fetching.** A small Node server polls every source, so browser CORS rules never block the app.
 * **Adapters** (`server/adapters/`) turn each source into one shared format (see `docs/DATA.md`). Swapping a free source for a paid one only means writing a new adapter.
-* **Results priority:** Manual > AP > Decision Desk HQ > state office > research file. When two sources disagree, the race page shows both.
+* **Results priority:** Manual > AP > Decision Desk HQ > state office > research file. State sites are read from `config/state-feeds.json` (Clarity/Scytl format). They give counts but never calls, and precincts reporting is shown as a note, not as share counted. When two sources disagree, the race page shows both.
 * **Refresh:** odds every 60 s and results every 45 s on election night (Nov 3–5), then every 15 min and 10 min. Data older than 1.5× its interval is labelled **Stale**.
 * **Fallbacks:** the last odds and results snapshot is saved to disk and shown, labelled stale, if a feed goes down.
 * **History:** every odds and vote-count change is appended to `data/runtime/history/*.jsonl` for trend lines. Odds from before the server started are backfilled from Kalshi candlesticks and Polymarket price history.
@@ -91,6 +91,7 @@ Needs Node 20 or newer. The two runtime dependencies are the map shapes (`us-atl
 | `config/key-votes.json` | Roll-call votes shown as key votes | empty |
 | `config/recount-thresholds.json` | Automatic and on-request recount margins by state | **unverified**, builder-compiled |
 | `config/certification.json` | Certification deadlines by state | empty |
+| `config/state-feeds.json` | State election office result sites (Clarity/Scytl) to read without an AP key | empty |
 | `config/ratings.json` | Dated expert ratings | empty |
 | `config/market-map.json` | Force a market onto a race, or ignore it | empty |
 | `config/chamber.json` | Seats not up in 2026 | **unverified**, builder-compiled |

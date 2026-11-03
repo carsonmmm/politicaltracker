@@ -131,7 +131,7 @@ export class Engine {
     this.feeds[name] = { ...(this.feeds[name] || {}), ...info, status: 'ok', last_ok: nowIso(), last_error: null };
   }
   feedError(name, err, info = {}) {
-    this.feeds[name] = { ...(this.feeds[name] || {}), ...info, status: err.kind === 'auth' && /No .*KEY|not implemented/.test(err.message) ? 'unconfigured' : 'error', last_error: err.message, last_error_at: nowIso() };
+    this.feeds[name] = { ...(this.feeds[name] || {}), ...info, status: err.kind === 'auth' && /No .*KEY|not implemented|No state result sites/.test(err.message) ? 'unconfigured' : 'error', last_error: err.message, last_error_at: nowIso() };
   }
 
   // ----- odds -----
@@ -772,7 +772,13 @@ export class Engine {
         if (Math.abs(delta) >= 0.01) out.push({ raceId: rid, source: last.source, label: last.label, party: last.party, from: before.p, to: last.p, delta, from_t: before.t, to_t: last.t });
       }
     }
-    return out.sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta)).slice(0, 25);
+    // One row per race and source: the D and R sides of a market move together, so keep the larger move.
+    const best = new Map();
+    for (const m of out) {
+      const k = `${m.raceId}|${m.source}`;
+      if (!best.has(k) || Math.abs(m.delta) > Math.abs(best.get(k).delta)) best.set(k, m);
+    }
+    return [...best.values()].sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta)).slice(0, 25);
   }
 
   marketsVsExperts(summaries) {

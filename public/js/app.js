@@ -73,7 +73,10 @@ function renderChrome() {
   liveEl.textContent = sseUp ? (oddsOk ? 'Live' : 'Live · feeds down') : 'Disconnected';
   const msgs = [];
   if (problems.length) msgs.push(`Feed down: ${problems.map(([n, f]) => `${esc(n)} (${esc(f.last_error)})`).join('; ')}.`);
-  if (!resultsLive) msgs.push('No live vote-count feed (AP / Decision Desk HQ need a paid key). Results come from the research file and manual entries only.');
+  const stateSites = s.feeds['State election office']?.status === 'ok';
+  if (!resultsLive) msgs.push(stateSites
+    ? 'No outlet results feed (AP / Decision Desk HQ need a paid key). Vote counts come from state election sites, which do not call races, plus the research file and manual entries.'
+    : 'No live vote-count feed (AP / Decision Desk HQ need a paid key). Results come from the research file and manual entries only.');
   const anyStale = s.races.some((r) => r.oddsSources.some((o) => o.stale));
   if (anyStale) msgs.push('Some odds are from the last saved snapshot and are marked Stale.');
   if (!sseUp) msgs.push('Lost connection to the server; numbers shown may be out of date.');

@@ -1,7 +1,7 @@
 // Minimal SVG line chart. series: [{label, color, points:[{t: iso, p: 0..1}]}]
 import { esc } from './ui.js';
 
-export function lineChart(series, { height = 200, width = 640, yMax = 1, yFmt = (v) => `${Math.round(v * 100)}%`, title = 'Chart', padLeft = 36 } = {}) {
+export function lineChart(series, { height = 200, width = 640, yMax = 1, yFmt = (v) => `${Math.round(v * 100)}%`, title = 'Chart', padLeft = 36, yMin = 0 } = {}) {
   const pts = series.flatMap((s) => s.points);
   if (pts.length < 2) return '<p class="empty">Not enough history yet to draw a trend line.</p>';
   const pad = { l: padLeft, r: 10, t: 10, b: 22 };
@@ -9,12 +9,12 @@ export function lineChart(series, { height = 200, width = 640, yMax = 1, yFmt = 
   const t1 = Math.max(...pts.map((p) => Date.parse(p.t)));
   const span = Math.max(1, t1 - t0);
   const x = (t) => pad.l + ((Date.parse(t) - t0) / span) * (width - pad.l - pad.r);
-  const y = (v) => pad.t + (1 - v / yMax) * (height - pad.t - pad.b);
+  const y = (v) => pad.t + (1 - (v - yMin) / (yMax - yMin || 1)) * (height - pad.t - pad.b);
   const grid = [0, 0.25, 0.5, 0.75, 1].map((f) => {
-    const v = f * yMax;
+    const v = yMin + f * (yMax - yMin);
     return `<line class="ax" x1="${pad.l}" x2="${width - pad.r}" y1="${y(v)}" y2="${y(v)}"/><text x="${pad.l - 4}" y="${y(v) + 3}" text-anchor="end">${esc(yFmt(v))}</text>`;
   }).join('');
-  const fmtT = (ms) => new Date(ms).toLocaleDateString('en-US', { month: 'short', day: 'numeric', ...(span < 2 * 86400000 ? { hour: 'numeric' } : {}) , timeZone: 'America/New_York' });
+  const fmtT = (ms) => new Date(ms).toLocaleDateString('en-US', { month: 'short', day: 'numeric', ...(span < 2 * 86400000 ? { hour: 'numeric', minute: '2-digit' } : {}) , timeZone: 'America/New_York' });
   const xt = [0, 0.5, 1].map((f) => `<text x="${pad.l + f * (width - pad.l - pad.r)}" y="${height - 6}" text-anchor="${f === 0 ? 'start' : f === 1 ? 'end' : 'middle'}">${esc(fmtT(t0 + f * span))}</text>`).join('');
   const lines = series
     .filter((s) => s.points.length)

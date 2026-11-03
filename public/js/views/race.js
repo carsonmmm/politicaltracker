@@ -28,6 +28,9 @@ export async function mount(root, ctx) {
       <section class="panel" aria-label="County results"><header><h2>County results</h2></header><div class="map-wrap" id="county" style="min-height:60px"></div><div data-k="county-src"></div></section>
       <section class="panel" aria-label="Odds history"><header><h2>Odds history</h2><span class="src">Market-implied chance over time</span></header><div data-k="ohist"></div></section>
     </div>
+    <div class="grid g2" style="margin-top:16px">
+      <section class="panel" aria-label="Count over time"><header><h2>Count over time</h2><span class="src">Each candidate's share as votes came in</span></header><div data-k="rhist"></div></section>
+    </div>
     <section class="panel" style="margin-top:16px" aria-label="Head-to-head"><div data-k="h2h"></div></section>
     <div class="grid g2" style="margin-top:16px">
       <section class="panel" aria-label="Campaign finance comparison"><div data-k="money"></div></section>
@@ -61,7 +64,7 @@ async function load(root, ctx, force) {
     moreSet = true;
   }
   patch(root, { 'more-sum': d.tier < 3 ? 'More about this race' : 'Tier 3 (safe or unrated) race: basic card shown. Open for past results, county map, odds history, head-to-head, finance and key moments', past: pastResults(d) }, force);
-  patch(root, { head: head(d), results: results(d), odds: odds(d), ohist: oddsHistory(d), cands: candidates(d), ratings: ratings(d), facts: facts(d), h2h: headToHead(d), money: money(d), outside: outside(d), moments: moments(d) }, force);
+  patch(root, { head: head(d), results: results(d), odds: odds(d), ohist: oddsHistory(d), rhist: countHistory(d), cands: candidates(d), ratings: ratings(d), facts: facts(d), h2h: headToHead(d), money: money(d), outside: outside(d), moments: moments(d) }, force);
   const p = d.results.primary;
   const cKey = JSON.stringify(p?.counties || []);
   const el = root.querySelector('#county');
@@ -111,7 +114,7 @@ function results(d) {
   if (majorityNote) html += `<div class="callout warn">${esc(majorityNote)}</div>`;
   if (p.rcvRounds?.length) html += rcv(p.rcvRounds);
   else if (d.race.format?.rcv) html += '<p class="small muted">Ranked-choice race: tabulation rounds will appear here once released.</p>';
-  html += `<div style="margin-top:8px">${src({ source: p.source === 'Manual' ? `Manual entry — ${p.manual_source}` : p.source, source_url: p.source_url, fetched_at: p.fetched_at, stale: p.stale, manual: p.manual, extra: p.from_snapshot ? ' <span class="tag stale">Last saved snapshot — feed down</span>' : '' })}</div>`;
+  html += `<div style="margin-top:8px">${src({ source: p.source === 'Manual' ? `Manual entry — ${p.manual_source}` : p.source_detail ? `${p.source} (${p.source_detail})` : p.source, source_url: p.source_url, fetched_at: p.fetched_at, stale: p.stale, manual: p.manual, extra: p.from_snapshot ? ' <span class="tag stale">Last saved snapshot — feed down</span>' : '' })}</div>`;
   if (disagreement) html += `<div class="callout warn"><b>Sources disagree:</b> ${esc(disagreement)}</div>`;
   if (alternates.length) {
     html += `<details style="margin-top:8px"><summary>Other sources (${alternates.length})</summary>${alternates.map((a) => `<div class="small" style="margin:6px 0"><b>${esc(a.source)}</b>: ${a.candidates.map((c) => `${esc(c.name)} ${num(c.votes)}`).join(', ')}${a.call ? ` — called for ${esc(a.call.winner)} by ${esc(a.call.calledBy)}` : ''}<br>${src(a)}</div>`).join('')}</details>`;
@@ -247,4 +250,19 @@ function pastResults(d) {
   return html + lean + `<div class="table-scroll"><table><thead><tr><th>Year</th><th>Top finishers</th><th class="r">Total votes</th></tr></thead><tbody>${rows}</tbody></table></div>${pres}
     ${d.office === 'H' ? '<p class="tiny muted">District lines may have changed since these elections, including mid-decade redistricting in some states before 2026, so past results may describe a different district.</p>' : ''}
     <div class="src" style="margin-top:6px"><a href="${esc(p.source_url)}" target="_blank" rel="noopener">${esc(p.source)}</a> · loaded ${esc(String(p.fetched_at).slice(0, 10))}</div>`;
+}
+
+function countHistory(d) {
+  const rows = d.resultsHistory || [];
+  if (rows.length < 2) return '<p class="empty">Not enough count updates yet to draw a trend line.</p>';
+  const names = [...new Set(rows.flatMap((r) => Object.keys(r.votes || {})))];
+  const partyOf = Object.fromEntries((d.candidates || []).map((c) => [c.name, c.party]));
+  const color = (n, i) => (partyOf[n] === 'D' ? 'var(--dem)' : partyOf[n] === 'R' ? 'var(--rep)' : ['var(--oth)', 'var(--muted)', 'var(--accent)'][i % 3]);
+  const series = names.slice(0, 4).map((n, i) => ({ label: n, color: color(n, i), points: rows.filter((r) => r.total > 0 && r.votes?.[n] != null).map((r) => ({ t: r.t, p: r.votes[n] / r.total })) }));
+  const last = rows.at(-1);
+  // Zoom to the data so a close race is readable (axis labels show the range).
+  const vals = series.flatMap((x) => x.points.map((q) => q.p));
+  const lo = Math.max(0, Math.floor((Math.min(...vals) - 0.05) * 20) / 20);
+  const hi = Math.min(1, Math.ceil((Math.max(...vals) + 0.05) * 20) / 20);
+  return lineChart(series, { title: `Vote share over time for ${d.label}`, yMin: lo, yMax: hi, yFmt: (v) => `${(v * 100).toFixed(0)}%` }) + `<p class="tiny muted">${rows.length} count updates recorded by this server; latest from ${esc(last.source)} with ${num(last.total)} votes${last.pctExpected != null ? ` (${last.pctExpected}% of expected)` : ''}. Shares can swing as different kinds of ballots are counted.</p>`;
 }

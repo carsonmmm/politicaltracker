@@ -202,6 +202,15 @@ export function createMock() {
       const ends = ['2025-03-31', '2025-06-30', '2025-09-30', '2025-12-31', '2026-03-31', '2026-06-30', '2026-09-30', '2026-10-14'];
       return json({ results: ends.map((e, i) => ({ coverage_end_date: `${e}T00:00:00`, total_receipts_period: Math.round((3e6 + i * 1.2e6) * scale), cash_on_hand_end_period: Math.round((4e6 + i * 0.9e6) * scale), receipt_date: e })) });
     }
+    // ---- fake Clarity/Scytl state results site ----
+    if (u.pathname === '/clarity/NV/1/current_ver.txt') { res.writeHead(200); return res.end('7\n'); }
+    if (u.pathname === '/clarity/NV/1/7/json/en/summary.json') return json([
+      { K: '1', C: 'United States Senator', CH: ['Test Fixture-D (DEM)', 'Test Fixture-R (REP)'], P: ['DEM', 'REP'], V: [10, 9], PR: 50, TP: 100 },
+      { K: '2', C: 'Governor', CH: ['Test Gov-D', 'Test Gov-R'], P: ['DEM', 'REP'], V: [400000, 410000], PR: 1500, TP: 2000 },
+      { K: '3', C: 'U.S. Representative, District 3', CH: ['Test Rep-D', 'Test Rep-R', 'Write-in'], P: ['DEM', 'REP', ''], V: [120000, 118000, 50], PR: 300, TP: 400 },
+      { K: '4', C: 'Lieutenant Governor', CH: ['X', 'Y'], P: ['DEM', 'REP'], V: [1, 2] },
+      { K: '5', C: 'State Senate District 4', CH: ['X', 'Y'], P: ['DEM', 'REP'], V: [1, 2] },
+    ]);
     // ---- fake Harvard Dataverse (MIT Election Lab) ----
     if (u.pathname === '/dataverse/api/datasets/:persistentId/') {
       const doi = u.searchParams.get('persistentId');
