@@ -89,7 +89,9 @@ export function normalizeEvent(ev, raceId) {
     }
   }
   // Outcomes with no price have never traded (unlaunched slots like "Party A", "Other"); leave them out.
-  const real = outcomes.filter((o) => o.price !== null);
+  // Placeholder slots ("Candidate A", "Option B", "Person C", a lone letter) carry a default price and are not people.
+  const PLACEHOLDER = /^(candidate|option|person|party|choice|other candidate)\s+[a-z0-9]$|^[a-z]$/i;
+  const real = outcomes.filter((o) => o.price !== null && !PLACEHOLDER.test(String(o.label).trim()));
   outcomes.length = 0;
   outcomes.push(...real);
   return {

@@ -36,3 +36,13 @@ test('senate.gov baseline counts seats not up (class I, and class III except OH/
   assert.deepEqual(b.notUp, { D: 1, R: 2, I: 1 });
   assert.equal(b.independents.length, 1);
 });
+
+test('unlabelled market names take a party from another source; placeholders and titles are cleaned', () => {
+  const o = (label, price, party = null) => ({ label, price, party });
+  const hints = [{ name: 'Mary Peltola', party: 'D', source: 'Wikipedia' }, { name: 'Dan Sullivan', party: 'R', source: 'Wikipedia' }];
+  const { picked, skipped } = pickFromMarket([o('Mary Peltola', 0.73), o('Sen. Dan Sullivan', 0.28), o('Nobody Known', 0.06)], { topN: 4, hints });
+  assert.deepEqual(picked.map((p) => [p.name, p.party, p.partySource]), [['Mary Peltola', 'D', 'Wikipedia'], ['Dan Sullivan', 'R', 'Wikipedia']]);
+  assert.equal(skipped[0].name, 'Nobody Known');
+  assert.equal(skipped.length, 1, 'no duplicate report lines');
+  assert.equal(parseInfobox('| nominee1 = Darline Graham (replacing Lindsey Graham)\n| party1 = Republican Party (United States)')[0].name, 'Darline Graham');
+});

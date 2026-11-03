@@ -18,7 +18,7 @@ import { createPolymarketAdapter } from '../server/adapters/polymarket.js';
 import { parseDelimited } from '../server/adapters/mit.js';
 import { buildCatalog } from '../server/engine.js';
 import { surnameMatches } from '../server/adapters/fec.js';
-import { nameKey, partyFromLabel } from '../server/lib/match.js';
+import { nameKey, partyFromLabel, lastName } from '../server/lib/match.js';
 import { BY_POSTAL, SENATE_SPECIAL } from '../server/lib/states.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -29,14 +29,29 @@ const report = [];
 const log = (s) => { console.log(s); report.push(s); };
 
 const PARTY_WORDS = /^(the\s+)?(democratic|democrat|republican|gop|independent|libertarian|green|other|another party|third party|any other)(\s+party)?(\s+candidate)?\s*(\([^)]*\))?$/i;
-export const cleanName = (label) => String(label).replace(/\s*\((?:D|R|I|L|G|Ind\.?|Dem\.?|Rep\.?|Independent|Democrat|Republican)\)\s*$/i, '').replace(/\s+/g, ' ').trim();
+export const cleanName = (label) => String(label)
+  .replace(/\s*\((?:D|R|I|L|G|Ind\.?|Dem\.?|Rep\.?|Independent|Democrat|Republican)\)\s*$/i, '')
+  .replace(/^(sen|senator|rep|representative|gov|governor|dr|hon)\.?\s+/i, '')
+  .replace(/\s+/g, ' ').trim();
+const sameSurname = (a, b) => { const x = lastName(a), y = lastName(b); return Boolean(x && x === y); };
 
 /** Pick candidates from one race's market outcomes. Returns {picked, skipped}. */
-export function pickFromMarket(outcomes, { topN = 0 } = {}) {
+export function pickFromMarket(outcomes, { topN = 0, hints = [] } = {}) {
   const topTwo = topN > 0;
+  // hints: [{name, party, source}] from other sources for this race (Wikipedia nominees, sitting members).
   const people = outcomes
     .filter((o) => o.price !== null && o.label && !PARTY_WORDS.test(String(o.label).trim()) && !/^(yes|no)$/i.test(o.label))
-    .map((o) => ({ name: cleanName(o.label), party: o.party || partyFromLabel(o.label) || null, price: o.price }))
+    .map((o) => {
+      const name = cleanName(o.label);
+      let party = o.party || partyFromLabel(o.label) || null;
+      let hint = null;
+      if (!party) {
+        hint = hints.find((h) => h.party && sameSurname(h.name, name));
+        if (hint) party = hint.party;
+      }
+      return { name, party, price: o.price, partySource: hint ? hint.source : null };
+    })
+    .filter((p, i, arr) => arr.findIndex((q) => nameKey(q.name) === nameKey(p.name)) === i)
     .sort((a, b) => b.price - a.price);
   const picked = [];
   const skipped = [];
@@ -52,7 +67,7 @@ export function pickFromMarket(outcomes, { topN = 0 } = {}) {
   }
   // Others (independents, third parties) at 5%+ market odds, per the inclusion rule.
   for (const p of people) {
-    if (p.price < 0.05 || picked.some((x) => nameKey(x.name) === nameKey(p.name))) continue;
+    if (p.price < 0.05 || picked.some((x) => nameKey(x.name) === nameKey(p.name)) || skipped.some((x) => nameKey(x.name) === nameKey(p.name))) continue;
     if (!p.party) skipped.push({ ...p, reason: 'no party label (5%+ in market)' });
     else if (p.party === 'O' || topTwo) add(p, '5%+ in market');
   }
@@ -78,7 +93,7 @@ export function parseInfobox(wikitext = '') {
   for (let i = 1; i <= 6; i++) {
     const raw = fields[`nominee${i}`] ?? fields[`candidate${i}`];
     if (!raw) continue;
-    const name = strip(raw);
+    const name = strip(raw).replace(/\s*\([^)]*\)\s*/g, ' ').trim();
     if (!name || /^(tbd|tba|none)$/i.test(name)) continue;
     const ptxt = fields[`party${i}`] || '';
     const party = /democratic|\bdfl\b/i.test(ptxt) ? 'D' : /republican/i.test(ptxt) ? 'R' : ptxt ? 'O' : null;
@@ -139,6 +154,30 @@ async function main() {
   const formats = JSON.parse(fs.readFileSync(path.join(root, 'config/race-formats.json'), 'utf8')).states || {};
   log(`# Import report — ${now}\n`);
 
+  // ---- 0. Other sources first, so they can supply parties for unlabelled market names ----
+  let wiki = {};
+  try {
+    wiki = await wikipediaNominees(races.filter((r) => r.office === 'S' || r.office === 'G'));
+  } catch (err) {
+    log(`Wikipedia cross-check failed: ${err.message}`);
+  }
+  let current = [];
+  try {
+    current = parseDelimited(await getText('https://voteview.com/static/data/out/members/HSall_members.csv')).filter((m) => Number(m.congress) === 119);
+  } catch (err) {
+    log(`VoteView member list failed: ${err.message}`);
+  }
+  const VV_PARTY = { 100: 'D', 200: 'R' };
+  const seatMembers = (r) => current.filter((m) => m.state_abbrev === r.state && (r.office === 'S' ? m.chamber === 'Senate' : r.office === 'H' ? m.chamber === 'House' : false));
+  const hintsFor = (r) => [
+    ...(wiki[wikiTitle(r)]?.nominees || []).map((n) => ({ name: n.name, party: n.party, source: 'Wikipedia' })),
+    // Sitting members of Congress from the state, for party only: the same district, or another district
+    // (redistricting moves members) only when that surname is unique in the state's delegation.
+    ...seatMembers(r)
+      .filter((m, _, all) => r.office !== 'H' || Number(m.district_code) === r.district || all.filter((x) => x.bioname.split(',')[0] === m.bioname.split(',')[0]).length === 1)
+      .map((m) => ({ name: (m.bioname.split(',')[1] || '').trim().split(' ')[0] + ' ' + m.bioname.split(',')[0], party: VV_PARTY[m.party_code] || 'O', source: 'VoteView (119th Congress member list)' })),
+  ];
+
   // ---- 1. Polymarket listings ----
   const poly = createPolymarketAdapter({});
   const { records } = await poly.refresh();
@@ -155,48 +194,43 @@ async function main() {
     const race = byId[rid];
     const f = formats[race.state];
     const topN = race.state === 'AK' ? 4 : f?.topTwo && f.offices?.includes(race.office) ? 2 : 0;
-    const { picked, skipped: sk } = pickFromMarket(rec.outcomes, { topN });
-    cands.set(rid, picked.map((p) => ({ name: p.name, party: p.party, sources: [{ name: 'Polymarket market listing', url: rec.source_url, note: `${p.why}; ${Math.round(p.price * 100)}% at import` }] })));
+    const { picked, skipped: sk } = pickFromMarket(rec.outcomes, { topN, hints: hintsFor(race) });
+    cands.set(rid, picked.map((p) => ({ name: p.name, party: p.party, sources: [{ name: 'Polymarket market listing', url: rec.source_url, note: `${p.why}; ${Math.round(p.price * 100)}% at import${p.partySource ? `; party from ${p.partySource}` : ''}` }] })));
     for (const s of sk) skipped.push(`${rid}: "${s.name}" ${Math.round(s.price * 100)}% — ${s.reason}`);
   }
 
   // ---- 2. Wikipedia cross-check (Senate + governor) ----
-  let wiki = {};
-  try {
-    wiki = await wikipediaNominees(races.filter((r) => r.office === 'S' || r.office === 'G'));
-  } catch (err) {
-    log(`Wikipedia cross-check failed: ${err.message}`);
-  }
   const disagreements = [];
   for (const r of races.filter((x) => x.office === 'S' || x.office === 'G')) {
     const w = wiki[wikiTitle(r)];
     if (!w || !w.nominees.length) continue;
     const list = cands.get(r.id) || [];
     for (const n of w.nominees) {
-      const hit = list.find((c) => nameKey(c.name) === nameKey(n.name) || surnameMatches(`${n.name.split(' ').pop().toUpperCase()}, X`, c.name));
+      const hit = list.find((c) => nameKey(c.name) === nameKey(n.name) || sameSurname(c.name, n.name));
       if (hit) {
-        hit.sources.push({ name: 'Wikipedia', url: w.url });
+        if (!hit.sources.some((s) => s.name === 'Wikipedia')) hit.sources.push({ name: 'Wikipedia', url: w.url });
         if (!hit.party && n.party) hit.party = n.party;
+      } else if ((n.party === 'D' || n.party === 'R') && list.some((c) => c.party === n.party)) {
+        // That party already has a candidate from the market: report, do not add a second one.
+        disagreements.push(`${r.id}: Wikipedia's ${n.party} nominee is ${n.name}; the market's is ${list.find((c) => c.party === n.party).name} (kept the market's; check)`);
       } else if (n.party) {
         list.push({ name: n.name, party: n.party, sources: [{ name: 'Wikipedia', url: w.url, note: 'nominee in infobox; not in the market listing' }] });
         disagreements.push(`${r.id}: Wikipedia lists ${n.name} (${n.party}); the market does not`);
       }
     }
-    for (const c of list) if (!c.sources.some((s) => s.name === 'Wikipedia') && (c.party === 'D' || c.party === 'R') && w.nominees.some((n) => n.party === c.party)) disagreements.push(`${r.id}: market lists ${c.name} (${c.party}); Wikipedia's ${c.party} nominee is ${w.nominees.find((n) => n.party === c.party).name}`);
     cands.set(r.id, list);
   }
 
   // ---- 3. Incumbents from VoteView (current Congress) ----
   let incumbents = 0;
   try {
-    const csv = await getText('https://voteview.com/static/data/out/members/HSall_members.csv');
-    const cur = parseDelimited(csv).filter((m) => Number(m.congress) === 119);
+    const cur = current;
     for (const [rid, list] of cands) {
       const r = byId[rid];
       if (r.office === 'G') continue;
       for (const c of list) {
         const hit = cur.find((m) => m.state_abbrev === r.state && (r.office === 'S' ? m.chamber === 'Senate' : m.chamber === 'House' && (Number(m.district_code) === r.district || (r.district === 0 && Number(m.district_code) <= 1))) && surnameMatches(m.bioname, c.name));
-        if (hit) { c.incumbent = true; c.bioguide_id = hit.bioguide_id || undefined; c.sources.push({ name: 'VoteView (119th Congress member list)', url: `https://voteview.com/person/${hit.icpsr}` }); incumbents++; }
+        if (hit) { c.incumbent = true; c.bioguide_id = hit.bioguide_id || undefined; if (!c.sources.some((s) => s.name.startsWith('VoteView'))) c.sources.push({ name: 'VoteView (119th Congress member list)', url: `https://voteview.com/person/${hit.icpsr}` }); incumbents++; }
       }
     }
     log(`Incumbents marked from VoteView: ${incumbents}`);

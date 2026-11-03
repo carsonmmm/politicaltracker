@@ -71,3 +71,12 @@ test('person-only markets borrow party labels from another source for the same r
   assert.deepEqual(k.parties, { D: 0.78, R: 0.22 }, 'unknown names (Stevens) are left out, not guessed');
   assert.equal(v.avg.D, 0.775);
 });
+
+test('Polymarket placeholder slots with a default price are dropped', () => {
+  const rec = polyNorm({ slug: 'ca-07', title: 'CA-07 House Election Winner', markets: [
+    { id: 1, groupItemTitle: 'Doris Matsui', outcomes: '["Yes","No"]', outcomePrices: '["0.77","0.23"]' },
+    { id: 2, groupItemTitle: 'Candidate A', outcomes: '["Yes","No"]', outcomePrices: '["0.5","0.5"]' },
+    { id: 3, groupItemTitle: 'B', outcomes: '["Yes","No"]', outcomePrices: '["0.5","0.5"]' },
+  ] }, 'H-CA-07');
+  assert.deepEqual(rec.outcomes.map((o) => o.label), ['Doris Matsui']);
+});
