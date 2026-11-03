@@ -14,7 +14,7 @@ export const STATUSES = ['not_reporting', 'counting', 'too_early', 'too_close', 
 // ---------- AP Elections API (paid; needs AP_API_KEY) ----------
 // Written against AP's documented v3 JSON schema. Untested in this build
 // because no key was available.
-export function createApAdapter({ apiKey = process.env.AP_API_KEY, electionDate = '2026-11-03', fetchImpl } = {}) {
+export function createApAdapter({ apiKey = process.env.AP_API_KEY, electionDate = '2026-11-03', fetchImpl, measureLookup = () => null } = {}) {
   const base = process.env.AP_BASE || 'https://api.ap.org/v3';
   return {
     source: 'AP',
@@ -24,23 +24,26 @@ export function createApAdapter({ apiKey = process.env.AP_API_KEY, electionDate 
       if (!apiKey) throw Object.assign(new Error('No AP_API_KEY set'), { kind: 'auth' });
       const url = `${base}/elections/${electionDate}?apikey=${apiKey}&format=json&statepostal=*&officeID=S,G,H,I&level=FIPSCode&resultsType=l`;
       const body = await fetchJson(url, { fetchImpl, timeoutMs: 30000 });
-      return { records: normalizeAp(body), errors: [] };
+      return { records: normalizeAp(body, measureLookup), errors: [] };
     },
   };
 }
 
 const AP_PARTY = { Dem: 'D', GOP: 'R', Rep: 'R', Ind: 'I', Lib: 'O', Grn: 'O' };
 
-export function normalizeAp(body) {
+export function normalizeAp(body, measureLookup = () => null) {
   const fetched_at = nowIso();
   const out = [];
   for (const race of body.races || []) {
-    const office = { S: 'S', G: 'G', H: 'H' }[race.officeID];
+    const office = { S: 'S', G: 'G', H: 'H', I: 'BM' }[race.officeID];
     if (!office) continue;
     const state = race.statePostal || race.reportingUnits?.[0]?.statePostal;
     if (!BY_POSTAL[state]) continue;
     let rid;
-    if (office === 'H') rid = makeRaceId('H', state, BY_POSTAL[state].house === 1 ? 0 : Number(race.seatNum));
+    if (office === 'BM') {
+      rid = measureLookup(state, race.seatName || race.description || race.officeName, race.raceID);
+      if (!rid) continue; // measure not in the catalog
+    } else if (office === 'H') rid = makeRaceId('H', state, BY_POSTAL[state].house === 1 ? 0 : Number(race.seatNum));
     else rid = makeRaceId(office, state);
     const units = race.reportingUnits || [];
     const top = units.find((u) => u.level === 'state' || u.level === 'district') || units[0];

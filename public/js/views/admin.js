@@ -84,6 +84,7 @@ export async function mount(root, ctx) {
       <p class="small muted">Every candidate uses the same template. Write position summaries in neutral language based on the candidate's own statement, and link that statement. Mark an issue "none found" only after looking. Leave it untouched if nobody has checked.</p>
       <form class="admin" id="f-profile">
         <div class="row3"><label>Race ID <input name="raceId" list="races" required></label><label>Candidate name <input name="name" list="cand-names" required></label><label>FEC candidate ID <input name="fec_id" placeholder="S6GA00123 (optional)"></label></div>
+        <label>Bioguide ID (links voting record and Congress.gov) <input name="bioguide_id" placeholder="O000174 (optional)"></label>
         <datalist id="cand-names"></datalist>
         <button class="btn ghost" type="button" id="p-load">Load existing profile</button>
         <fieldset style="border:1px solid var(--line);border-radius:6px"><legend class="small">Biography</legend>
@@ -106,6 +107,27 @@ export async function mount(root, ctx) {
         <label>What happened (neutral, factual) <input name="text" required maxlength="500"></label>
         <label>Source URL (required for every entry) <input name="source_url" type="url" required></label>
         <button class="btn">Save moment</button><div class="msg" data-msg></div></form></section>
+    <div class="grid g2" style="margin-top:16px">
+    <section class="panel"><h2>Partisan lean</h2>
+      <form class="admin" id="f-lean"><div class="row3"><label>Race ID <input name="raceId" list="races" required></label><label>Value <input name="value" placeholder="R+5, D+3, EVEN" required></label><label>Date <input name="date" placeholder="2025" required></label></div>
+        <div class="row2"><label>Source <input name="source" placeholder="Cook PVI 2025" required></label><label>Source URL <input name="source_url" type="url" required></label></div>
+        <button class="btn">Save lean</button><div class="msg" data-msg></div></form></section>
+    <section class="panel"><h2>Key vote</h2>
+      <p class="small muted">The same list applies to every member of that chamber. Use VoteView's roll-call number (shown on each vote's page at voteview.com).</p>
+      <form class="admin" id="f-kv"><div class="row3"><label>Chamber <select name="chamber"><option>Senate</option><option>House</option></select></label><label>Congress <input name="congress" type="number" value="119" required></label><label>Roll-call number <input name="rollnumber" type="number" required></label></div>
+        <label>Neutral description <input name="label" required maxlength="200" placeholder="Passage of H.R. 1234 (short title)"></label>
+        <label>Source URL <input name="source_url" type="url" required></label>
+        <button class="btn">Save key vote</button><div class="msg" data-msg></div></form></section>
+    </div>
+    <section class="panel" style="margin-top:16px"><h2>Ballot measure</h2>
+      <form class="admin" id="f-measure">
+        <div class="row3"><label>State <input name="state" maxlength="2" required placeholder="CA"></label><label>Number <input name="number" required placeholder="Proposition 1"></label><label>Pass threshold <input name="threshold" value="majority" placeholder="majority or 60%"></label></div>
+        <label>Official title <input name="title" required></label>
+        <label>What it does, in plain neutral language <textarea name="summary" rows="2"></textarea></label>
+        <div class="row2"><label>Summary source (official text or voter guide) <input name="summary_source_url" type="url"></label><label>AP race ID (optional) <input name="ap_race_id"></label></div>
+        <div class="row2"><label>Supporters: Name | URL<textarea name="supporters" rows="2"></textarea></label><label>Opponents: Name | URL<textarea name="opponents" rows="2"></textarea></label></div>
+        <div class="row2"><label>Support raised: Amount | Source | URL | As of (YYYY-MM-DD)<input name="support_fin" placeholder="12000000 | CA Secretary of State | https://... | 2026-10-24"></label><label>Oppose raised: Amount | Source | URL | As of<input name="oppose_fin"></label></div>
+        <button class="btn">Save measure</button><div class="msg" data-msg></div></form></section>
     <section class="panel" style="margin-top:16px"><h2>Manual entries</h2><div id="entries"></div></section>`;
   wire(root, ctx);
   loadSide(root, ctx);
@@ -166,6 +188,16 @@ function wire(root, ctx) {
   });
   on('#f-moment', (f) => ['moment', { raceId: f.raceId.value.trim(), date: f.date.value, type: f.type.value, text: f.text.value.trim(), source_url: f.source_url.value.trim() }]);
   on('#f-profile', (f) => ['profile', profileBody(f)]);
+  on('#f-lean', (f) => ['lean', { raceId: f.raceId.value.trim(), value: f.value.value.trim().toUpperCase().replace(/^EVEN$/, 'EVEN'), date: f.date.value.trim(), source: f.source.value.trim(), source_url: f.source_url.value.trim() }]);
+  on('#f-kv', (f) => ['key-vote', { chamber: f.chamber.value, congress: Number(f.congress.value), rollnumber: Number(f.rollnumber.value), label: f.label.value.trim(), source_url: f.source_url.value.trim() }]);
+  on('#f-measure', (f) => {
+    const fin = (v) => { const [raised, source, source_url, as_of] = (v || '').split('|').map((x) => x.trim()); return raised ? { raised: Number(raised.replace(/[$,]/g, '')), source, source_url, as_of } : undefined; };
+    const finance = {};
+    if (fin(f.support_fin.value)) finance.support = fin(f.support_fin.value);
+    if (fin(f.oppose_fin.value)) finance.oppose = fin(f.oppose_fin.value);
+    return ['measure', { state: f.state.value.trim().toUpperCase(), number: f.number.value.trim(), threshold: f.threshold.value.trim() || 'majority', title: f.title.value.trim(), summary: f.summary.value.trim(), summary_source_url: f.summary_source_url.value.trim(), ap_race_id: f.ap_race_id.value.trim() || undefined,
+      supporters: lines(f.supporters.value).map(([name, source_url]) => ({ name, source_url })), opponents: lines(f.opponents.value).map(([name, source_url]) => ({ name, source_url })), finance }];
+  });
   const pf = root.querySelector('#f-profile');
   pf.raceId.addEventListener('change', async () => {
     const r = await fetch(`/api/race/${encodeURIComponent(pf.raceId.value.trim())}`).then((x) => (x.ok ? x.json() : null));
@@ -217,6 +249,9 @@ async function loadSide(root, ctx) {
   for (const r of manual.ratings) { idx[`rating${r.raceId}`] = (idx[`rating${r.raceId}`] ?? -1) + 1; rows.push(['rating', r.raceId, idx[`rating${r.raceId}`], `${r.outlet}: ${r.rating} (${r.date})`, r.entered_at]); }
   for (const r of manual.polls) { idx[`poll${r.raceId}`] = (idx[`poll${r.raceId}`] ?? -1) + 1; rows.push(['poll', r.raceId, idx[`poll${r.raceId}`], `${r.average}: ${r.values.map((v) => `${v.name} ${v.pct}%`).join(', ')} (${r.date})`, r.entered_at]); }
   for (const [key, pr] of Object.entries(manual.profiles || {})) rows.push(['profile', pr.raceId, key, `${pr.name} profile`, pr.entered_at]);
+  for (const [id, m] of Object.entries(manual.measures || {})) rows.push(['measure', id, 0, `${m.number}: ${m.title}`, m.entered_at]);
+  for (const l of manual.lean || []) { idx[`lean${l.raceId}`] = (idx[`lean${l.raceId}`] ?? -1) + 1; rows.push(['lean', l.raceId, idx[`lean${l.raceId}`], `${l.value} (${l.source}, ${l.date})`, l.entered_at]); }
+  (manual.keyVotes || []).forEach((k, i) => rows.push(['key-vote', `${k.chamber} ${k.congress}`, i, `Roll ${k.rollnumber}: ${k.label}`, k.entered_at]));
   for (const m of manual.moments || []) { idx[`moment${m.raceId}`] = (idx[`moment${m.raceId}`] ?? -1) + 1; rows.push(['moment', m.raceId, idx[`moment${m.raceId}`], `${m.date} ${m.type}: ${m.text}`, m.entered_at]); }
   const el = root.querySelector('#entries');
   el.innerHTML = rows.length
@@ -245,6 +280,7 @@ function profileBody(f) {
     raceId: f.raceId.value.trim(),
     name: f.name.value.trim(),
     fec_id: f.fec_id.value.trim().toUpperCase() || undefined,
+    bioguide_id: f.bioguide_id.value.trim().toUpperCase() || undefined,
     bio,
     offices: pipe(f.offices.value).map(([title, from, to, source_url]) => ({ title, from, to, source_url })),
     elections: pipe(f.elections.value).map(([year, office, result, pct, source_url]) => ({ year, office, result, pct: pct ? Number(pct) : null, source_url })),
@@ -256,6 +292,7 @@ function profileBody(f) {
 
 function fillProfile(f, p) {
   f.fec_id.value = p.fec_id || '';
+  f.bioguide_id.value = p.bioguide_id || '';
   const b = p.bio || {};
   f.birth_date.value = b.birth_date || '';
   f.hometown.value = b.hometown || '';

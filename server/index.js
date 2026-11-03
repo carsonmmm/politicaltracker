@@ -10,6 +10,7 @@ import { STATUSES } from './adapters/results.js';
 import { partyFromLabel } from './lib/match.js';
 import { store } from './store.js';
 import { validateProfile, validateMoment, candidateKey, ISSUES, MOMENT_TYPES } from './profiles.js';
+import { validateMeasure, measureId } from './measures.js';
 
 const PORT = Number(process.env.PORT || 8080);
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN || crypto.randomBytes(9).toString('base64url');
@@ -138,11 +139,34 @@ const admin = {
     need(engine.byId.has(b.raceId), 'Unknown raceId');
     need(b.name, 'name required');
     need(!b.fec_id || /^[HS]\d[A-Z]{2}\d{5}$/.test(b.fec_id), 'fec_id looks like H6GA07123 or S6GA00123');
+    need(!b.bioguide_id || /^[A-Z]\d{6}$/.test(b.bioguide_id), 'bioguide_id looks like O000174');
     const problems = validateProfile(b);
     need(!problems.length, problems.join('; '));
     const { raceId, name } = b;
-    const clean = { raceId, name, fec_id: b.fec_id || undefined, bio: b.bio, offices: b.offices, elections: b.elections, roles: b.roles, endorsements: b.endorsements, positions: b.positions, entered_at: nowIso() };
+    const clean = { raceId, name, fec_id: b.fec_id || undefined, bioguide_id: b.bioguide_id || undefined, bio: b.bio, offices: b.offices, elections: b.elections, roles: b.roles, endorsements: b.endorsements, positions: b.positions, entered_at: nowIso() };
     engine.manual.profiles[candidateKey(raceId, name)] = JSON.parse(JSON.stringify(clean));
+  },
+  lean(b) {
+    need(engine.byId.has(b.raceId), 'Unknown raceId');
+    need(/^(D|R)\+\d{1,2}$|^EVEN$/.test(b.value || ''), 'value like R+5, D+3 or EVEN');
+    need(b.source && isUrl(b.source_url) && /^\d{4}(-\d{2}-\d{2})?$/.test(b.date || ''), 'source (e.g. Cook PVI 2025), source_url and date (YYYY or YYYY-MM-DD) required');
+    engine.manual.lean = engine.manual.lean.filter((l) => !(l.raceId === b.raceId && l.source === b.source));
+    engine.manual.lean.push({ raceId: b.raceId, value: b.value, source: b.source, date: b.date, source_url: b.source_url, entered_at: nowIso() });
+  },
+  'key-vote'(b) {
+    need(['Senate', 'House'].includes(b.chamber), 'chamber is Senate or House');
+    need(Number.isInteger(Number(b.congress)) && Number.isInteger(Number(b.rollnumber)), 'congress and rollnumber must be numbers (VoteView roll-call number)');
+    need(b.label && isUrl(b.source_url), 'label and source_url required');
+    engine.manual.keyVotes = engine.manual.keyVotes.filter((k) => !(k.chamber === b.chamber && Number(k.congress) === Number(b.congress) && Number(k.rollnumber) === Number(b.rollnumber)));
+    engine.manual.keyVotes.push({ chamber: b.chamber, congress: Number(b.congress), rollnumber: Number(b.rollnumber), label: String(b.label).slice(0, 200), source_url: b.source_url, entered_at: nowIso() });
+    engine.voteviewStale = true; // refetch casts for the new vote
+  },
+  measure(b) {
+    const problems = validateMeasure(b);
+    need(!problems.length, problems.join('; '));
+    const id = measureId(b.state, b.number);
+    engine.manual.measures[id] = { state: b.state, number: b.number, title: b.title, summary: b.summary || undefined, summary_source_url: b.summary_source_url || undefined, threshold: b.threshold || 'majority', supporters: b.supporters || [], opponents: b.opponents || [], finance: b.finance || {}, ap_race_id: b.ap_race_id || undefined, entered_at: nowIso() };
+    engine.syncMeasures();
   },
   moment(b) {
     const problems = validateMoment(b);
@@ -153,6 +177,12 @@ const admin = {
   delete(b) {
     const { kind, raceId, index } = b;
     if (kind === 'profile') delete engine.manual.profiles[b.key];
+    else if (kind === 'measure') { delete engine.manual.measures[raceId]; engine.syncMeasures(); }
+    else if (kind === 'lean') {
+      const own = engine.manual.lean.map((r, i) => [r, i]).filter(([r]) => r.raceId === raceId);
+      if (own[index]) engine.manual.lean.splice(own[index][1], 1);
+    }
+    else if (kind === 'key-vote') { engine.manual.keyVotes.splice(index, 1); engine.voteviewStale = true; }
     else if (kind === 'moment') {
       const own = engine.manual.moments.map((r, i) => [r, i]).filter(([r]) => r.raceId === raceId);
       if (own[index]) engine.manual.moments.splice(own[index][1], 1);
@@ -174,7 +204,10 @@ const server = http.createServer(async (req, res) => {
     if (p === '/healthz') return send(res, 200, { ok: true, version: engine.version, uptime_s: Math.round(process.uptime()) });
     if (p === '/api/state') return send(res, 200, engine.state());
     if (p.startsWith('/api/race/')) {
-      const d = engine.raceDetail(decodeURIComponent(p.slice(10)));
+      const rid = decodeURIComponent(p.slice(10));
+      const race = engine.byId.get(rid);
+      if (race && (race.office === 'S' || race.office === 'H') && !engine.finance[rid]) engine.financeRequests.add(rid);
+      const d = engine.raceDetail(rid);
       return d ? send(res, 200, d) : send(res, 404, { error: 'unknown race' });
     }
     if (p.startsWith('/api/candidate/')) {

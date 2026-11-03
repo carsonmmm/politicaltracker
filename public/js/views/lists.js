@@ -8,7 +8,7 @@ export const races = {
     root.innerHTML = `<h1>All races</h1>
       <div class="filters" role="search">
         <input id="q" type="search" placeholder="Search candidate, state or district (e.g. PA-07)" value="${esc(f.q)}" aria-label="Search">
-        <select id="office" aria-label="Office"><option value="">All offices</option>${['S', 'G', 'H'].map((o) => `<option value="${o}">${OFFICE_NAME[o]}</option>`).join('')}</select>
+        <select id="office" aria-label="Office"><option value="">All offices</option>${['S', 'G', 'H', 'BM'].map((o) => `<option value="${o}">${OFFICE_NAME[o]}</option>`).join('')}</select>
         <select id="tier" aria-label="Tier"><option value="">All tiers</option><option value="1">Tier 1</option><option value="2">Tier 2</option><option value="3">Tier 3</option></select>
         <select id="status" aria-label="Status"><option value="">Any status</option>${Object.entries(STATUS_LABEL).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}</select>
       </div>

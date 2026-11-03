@@ -2,37 +2,47 @@ import { esc, pct, num, compact, chip, statusTag, leadText, oddsText, oddsBar, s
 import { lineChart } from '../chart.js';
 import { renderCountyMap } from '../map.js';
 import { comparison } from '../finance.js';
+import * as measureView from './measure.js';
 
 const FIPS = { AL: '01', AK: '02', AZ: '04', AR: '05', CA: '06', CO: '08', CT: '09', DE: '10', FL: '12', GA: '13', HI: '15', ID: '16', IL: '17', IN: '18', IA: '19', KS: '20', KY: '21', LA: '22', ME: '23', MD: '24', MA: '25', MI: '26', MN: '27', MS: '28', MO: '29', MT: '30', NE: '31', NV: '32', NH: '33', NJ: '34', NM: '35', NY: '36', NC: '37', ND: '38', OH: '39', OK: '40', OR: '41', PA: '42', RI: '44', SC: '45', SD: '46', TN: '47', TX: '48', UT: '49', VT: '50', VA: '51', WA: '53', WV: '54', WI: '55', WY: '56' };
 let detail = null;
 
 export async function mount(root, ctx) {
+  if (ctx.params.id.startsWith('BM-')) return measureView.mount(root, ctx);
+  moreSet = false;
   root.innerHTML = `<div data-k="head"><p class="muted">Loading race…</p></div>
     <div class="grid g2" style="margin-top:12px">
       <section class="panel" aria-label="Live results"><div data-k="results"></div></section>
       <section class="panel" aria-label="Market odds"><div data-k="odds"></div></section>
-    </div>
-    <div class="grid g2" style="margin-top:16px">
-      <section class="panel" aria-label="County results"><header><h2>County results</h2></header><div class="map-wrap" id="county" style="min-height:60px"></div><div data-k="county-src"></div></section>
-      <section class="panel" aria-label="Odds history"><header><h2>Odds history</h2><span class="src">Market-implied chance over time</span></header><div data-k="ohist"></div></section>
     </div>
     <div class="grid g3" style="margin-top:16px">
       <section class="panel" aria-label="Candidates"><div data-k="cands"></div></section>
       <section class="panel" aria-label="Ratings and polls"><div data-k="ratings"></div></section>
       <section class="panel" aria-label="Race details"><div data-k="facts"></div></section>
     </div>
+    <details id="more" class="more" style="margin-top:16px">
+    <summary data-k="more-sum">More about this race</summary>
+    <section class="panel" style="margin-top:12px" aria-label="Past results"><div data-k="past"></div></section>
+    <div class="grid g2" style="margin-top:16px">
+      <section class="panel" aria-label="County results"><header><h2>County results</h2></header><div class="map-wrap" id="county" style="min-height:60px"></div><div data-k="county-src"></div></section>
+      <section class="panel" aria-label="Odds history"><header><h2>Odds history</h2><span class="src">Market-implied chance over time</span></header><div data-k="ohist"></div></section>
+    </div>
     <section class="panel" style="margin-top:16px" aria-label="Head-to-head"><div data-k="h2h"></div></section>
     <div class="grid g2" style="margin-top:16px">
       <section class="panel" aria-label="Campaign finance comparison"><div data-k="money"></div></section>
       <section class="panel" aria-label="Outside spending"><div data-k="outside"></div></section>
     </div>
-    <section class="panel" style="margin-top:16px" aria-label="Key moments"><div data-k="moments"></div></section>`;
+    <section class="panel" style="margin-top:16px" aria-label="Key moments"><div data-k="moments"></div></section>
+    </details>`;
   await load(root, ctx, true);
 }
 
 export async function update(root, ctx, opts = {}) {
+  if (ctx.params.id.startsWith('BM-')) return measureView.update(root, ctx, opts);
   await load(root, ctx, opts.force);
 }
+
+let moreSet = false;
 
 let lastCountyKey = '';
 async function load(root, ctx, force) {
@@ -44,6 +54,12 @@ async function load(root, ctx, force) {
   detail = await r.json();
   const d = detail;
   document.title = `${d.label} — Midterm Live`;
+  if (!moreSet) {
+    // Tier 1 and 2: everything open. Tier 3: basic card; the rest stays one click away.
+    root.querySelector('#more').open = d.tier < 3;
+    moreSet = true;
+  }
+  patch(root, { 'more-sum': d.tier < 3 ? 'More about this race' : 'Tier 3 (safe or unrated) race: basic card shown. Open for past results, county map, odds history, head-to-head, finance and key moments', past: pastResults(d) }, force);
   patch(root, { head: head(d), results: results(d), odds: odds(d), ohist: oddsHistory(d), cands: candidates(d), ratings: ratings(d), facts: facts(d), h2h: headToHead(d), money: money(d), outside: outside(d), moments: moments(d) }, force);
   const p = d.results.primary;
   const cKey = JSON.stringify(p?.counties || []);
@@ -170,7 +186,8 @@ function facts(d) {
     <dl class="kv">
       <dt>Poll close</dt><dd>${d.pollClose ? `${esc(d.pollClose.first)}${d.pollClose.last !== d.pollClose.first ? `–${esc(d.pollClose.last)}` : ''} ET <span class="tag warn">Unverified</span>` : '—'}</dd>
       <dt>Format</dt><dd>${notes.length ? notes.map(esc).join('<br>') : 'Plurality winner'}${f.note ? `<br><span class="small muted">${esc(f.note)}</span>` : ''}${Object.keys(f).length ? ' <span class="tag warn">Unverified</span>' : ''}</dd>
-      <dt>Past results</dt><dd class="muted">Not available — Phase 4 (MIT Election Lab, Cook PVI)</dd>
+      <dt>Past results</dt><dd>${d.past?.available ? `${d.past.elections.map((e) => { const w = e.candidates[0]; const t = e.totalvotes || 1; return `${e.year}: ${w.party} ${((w.votes / t) * 100).toFixed(0)}%`; }).join(' · ')} <span class="tiny muted">(see below)</span>` : `<span class="muted">${esc(d.past?.reason || 'Not available')}</span>`}</dd>
+      <dt>Partisan lean</dt><dd>${d.lean?.length ? d.lean.map((l) => `${esc(l.value)} <span class="tiny muted">${esc(l.source)}</span>`).join(' · ') : '<span class="muted">Not entered</span>'}</dd>
       <dt>Seat list</dt><dd><a href="${esc(d.race.catalog_source_url)}" target="_blank" rel="noopener">Ballotpedia</a></dd>
     </dl>`;
 }
@@ -212,4 +229,21 @@ function moments(d) {
   let html = '<header><h2>Key moments</h2><span class="small muted">Each entry links to its source; the same standard applies to every candidate</span></header>';
   if (!d.moments.length) return html + notAvailable('no key moments have been entered for this race');
   return html + `<ul class="feed" style="max-height:none">${d.moments.map((m) => `<li><span class="num small muted">${esc(m.date)}</span> <span class="tag">${esc(MOMENT_LABEL[m.type] || m.type)}</span> ${esc(m.text)} <span class="src"><a href="${esc(m.source_url)}" target="_blank" rel="noopener">source</a>${m.origin === 'Manual' ? ' <span class="tag manual">Manual</span>' : ''}</span></li>`).join('')}</ul>`;
+}
+
+function pastResults(d) {
+  const p = d.past;
+  let html = '<header><h2>Past results and partisan lean</h2></header>';
+  const lean = d.lean?.length ? `<p class="small"><b>Partisan lean:</b> ${d.lean.map((l) => `${esc(l.value)} <span class="src"><a href="${esc(l.source_url)}" target="_blank" rel="noopener">${esc(l.source)}</a>${l.date ? `, ${esc(l.date)}` : ''}</span>`).join(' · ')}</p>`
+    : '<p class="small muted">Partisan lean: not entered. Cook PVI is proprietary, so it is added by hand in Admin with its source.</p>';
+  if (!p?.available) return html + lean + notAvailable(p?.reason || 'no past results loaded');
+  const rows = p.elections.map((e) => {
+    const tot = e.totalvotes || e.candidates.reduce((a, c) => a + c.votes, 0);
+    const top = e.candidates.slice(0, 3);
+    return `<tr><td class="num">${esc(e.year)}${e.special ? ' <span class="tag">Special</span>' : ''}</td><td>${top.map((c) => `${chip(c.party)} ${esc(c.name)} <span class="num">${tot ? ((c.votes / tot) * 100).toFixed(1) : '—'}%</span>`).join('<br>')}</td><td class="r num">${num(tot)}</td></tr>`;
+  }).join('');
+  const pres = p.president?.length ? `<h3 style="margin-top:10px">Presidential vote in ${esc(d.stateName)}</h3><table><tbody>${p.president.map((e) => { const tot = e.totalvotes; return `<tr><td class="num">${esc(e.year)}</td><td>${e.candidates.slice(0, 2).map((c) => `${chip(c.party)} ${esc(c.name)} <span class="num">${tot ? ((c.votes / tot) * 100).toFixed(1) : '—'}%</span>`).join(' · ')}</td></tr>`; }).join('')}</tbody></table>` : '';
+  return html + lean + `<div class="table-scroll"><table><thead><tr><th>Year</th><th>Top finishers</th><th class="r">Total votes</th></tr></thead><tbody>${rows}</tbody></table></div>${pres}
+    ${d.office === 'H' ? '<p class="tiny muted">District lines may have changed since these elections, including mid-decade redistricting in some states before 2026, so past results may describe a different district.</p>' : ''}
+    <div class="src" style="margin-top:6px"><a href="${esc(p.source_url)}" target="_blank" rel="noopener">${esc(p.source)}</a> · loaded ${esc(String(p.fetched_at).slice(0, 10))}</div>`;
 }

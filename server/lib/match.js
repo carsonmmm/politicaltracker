@@ -2,6 +2,7 @@
 // Matching is heuristic; anything it cannot place confidently is left
 // unmatched and listed in the admin panel for manual mapping.
 import { BY_POSTAL, stateFromName, SENATE_SPECIAL } from './states.js';
+import { MEASURE_LABEL_RE, measureId } from '../measures.js';
 
 export function raceId(office, state, district) {
   if (office === 'H') return `H-${state}-${String(district).padStart(2, '0')}`;
@@ -49,6 +50,12 @@ export function matchMarket({ title = '', subtitle = '', ticker = '', seriesTick
   }
 
   const state = stateFromName(text);
+  // Ballot measures: "Will California Proposition 50 pass?", "Florida Amendment 4".
+  const ml = text.match(MEASURE_LABEL_RE);
+  if (ml && state && /\b(pass|approve|yes|ballot|vote|measure|proposition|amendment|initiative|question|issue|referendum)\b/i.test(text)) {
+    const id = measureId(state, ml[0]);
+    if (id) return { raceId: id, confidence: 'title' };
+  }
   const isSenate = SENATE_RE.test(text);
   const isGov = GOV_RE.test(text);
   const isHouse = HOUSE_RE.test(text);

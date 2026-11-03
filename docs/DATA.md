@@ -84,3 +84,35 @@ Fetched for Tier 1 Senate and House races and refreshed when a race's data is a 
 | Fundraising over time | committee reports, latest filing per period |
 
 Without `FEC_API_KEY` only race summaries are fetched, because `DEMO_KEY` allows very few requests per hour. No score or grade is computed.
+
+## Ballot measures (`data/measures-research.json`)
+
+No free API lists statewide measures, so the catalog comes from this file and Admin → Ballot measure. Each entry becomes a race with ID `BM-<state>-<number>`, for example `BM-CA-50`.
+
+```jsonc
+{ "entries": [{
+  "state": "CA", "number": "Proposition 50", "title": "Official ballot title",
+  "summary": "What it does, in plain neutral language.", "summary_source_url": "https://official-voter-guide/…",
+  "threshold": "majority",               // or "60%" etc.
+  "supporters": [{ "name": "…", "source_url": "https://…" }],
+  "opponents":  [{ "name": "…", "source_url": "https://…" }],
+  "finance": { "support": { "raised": 12000000, "source": "CA Secretary of State", "source_url": "https://…", "as_of": "2026-10-24" },
+               "oppose":  { "raised": 4500000,  "source": "…", "source_url": "https://…", "as_of": "2026-10-24" } },
+  "ap_race_id": "optional AP raceID"
+}] }
+```
+
+Markets titled like "Will California Proposition 50 pass?" are matched automatically. AP ballot-issue races (officeID `I`) are matched by `ap_race_id`, or else by state and number. A market for a measure that isn't in the catalog appears under Admin → Unmatched markets.
+
+## Past results (MIT Election Lab)
+
+Downloaded once from Harvard Dataverse (`doi:10.7910/DVN/PEJ5QU` Senate, `IG0UN2` House, `42MVDX` President) into `data/runtime/past.json`; delete that file to reload. Senate history keeps elections for the same seat: Class II for the regular 2026 seats, Class III for the Ohio and Florida specials. House history keeps the last four general elections for the district number, with a note that lines may have changed. Governor results aren't in these datasets. Partisan lean (for example Cook PVI) is proprietary, so it's entered in Admin with its source.
+
+## Voting records (VoteView, Congress.gov)
+
+VoteView `HSall_members.csv` supplies DW-NOMINATE scores for every member since 1987. The current Congress's vote files give participation and casts on **key votes**. Key votes ship empty (`config/key-votes.json`) because choosing them is editorial; the same list applies to everyone in a chamber. Candidates are linked by Bioguide ID (Admin) or by surname and state, with first name used to break ties. Congress.gov member records fill "Offices held" when research hasn't. Refreshed weekly, or straight away when the key-vote list changes.
+
+## Personal financial disclosures
+
+* **House:** the Clerk's yearly ZIP index (`<year>FD.zip`) lists every annual, candidate and Periodic Transaction Report (stock trades), with links to the PDFs. Filings are matched by surname and state. Refreshed weekly.
+* **Senate:** eFD has no API, so the adapter follows the public search form (agree to terms, then search) and reads the transaction table from electronic trade reports. Searches run on demand when a Senate candidate's page is opened and are cached for a day. If the site changes, the page says the search failed.

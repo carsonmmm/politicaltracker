@@ -1,0 +1,7 @@
+{ "entries": [
+  { "state": "CA", "number": "Proposition 99", "title": "TEST FIXTURE measure (not a real proposition)", "summary": "Test summary text for the fixture measure.", "summary_source_url": "https://example.com/prop99",
+    "threshold": "majority",
+    "supporters": [{ "name": "Test Yes Committee", "source_url": "https://example.com/yes" }],
+    "opponents": [{ "name": "Test No Committee", "source_url": "https://example.com/no" }],
+    "finance": { "support": { "raised": 12000000, "source": "Test filing", "source_url": "https://example.com/f1", "as_of": "2026-10-24" }, "oppose": { "raised": 4500000, "source": "Test filing", "source_url": "https://example.com/f2", "as_of": "2026-10-24" } } }
+] }

@@ -6,6 +6,8 @@ import { ROOT, readJson, nowIso } from './lib/util.js';
 import { store } from './store.js';
 import { loadResearch, buildProfile, candidateKey, candidateSlug } from './profiles.js';
 import { surnameMatches } from './adapters/fec.js';
+import { loadMeasures, measureSide, thresholdShare, measureId } from './measures.js';
+import { officesFromTerms } from './adapters/voteview.js';
 
 // Config files are re-read at most every 5 s (edits still show up quickly) instead of on every call.
 const cfgCache = new Map();
@@ -58,6 +60,7 @@ export function buildCatalog() {
 }
 
 export function officeLabel(r) {
+  if (r.office === 'BM') return `${r.stateName} ${r.measure?.number || r.id}`;
   if (r.office === 'S') return `${r.stateName} Senate${r.special ? ' (special)' : ''}`;
   if (r.office === 'G') return `${r.stateName} Governor`;
   return `${r.state}-${r.district === 0 ? 'AL' : String(r.district).padStart(2, '0')}`;
@@ -74,9 +77,19 @@ export class Engine {
     this.version = 0;
     this.listeners = new Set();
     this.manual = store.load('manual.json', { results: {}, candidates: {}, ratings: [], polls: [], notes: {}, chamber: null, pollClosing: null, marketMap: {} });
-    for (const k of ['results', 'candidates', 'notes', 'marketMap', 'profiles']) this.manual[k] ||= {};
-    for (const k of ['ratings', 'polls', 'moments']) this.manual[k] ||= [];
+    for (const k of ['results', 'candidates', 'notes', 'marketMap', 'profiles', 'measures']) this.manual[k] ||= {};
+    for (const k of ['ratings', 'polls', 'moments', 'lean', 'keyVotes']) this.manual[k] ||= [];
+    // Phase 4 stores (fetched by the scheduler, cached on disk).
+    this.past = store.load('past.json', null);
+    this.voteview = store.load('voteview.json', null);
+    this.houseFd = store.load('house-disclosures.json', null);
+    this.congressMembers = store.load('congress-members.json', {});
+    this.senateFd = store.load('senate-efd.json', {});
+    this.congressRequests = new Set();
+    this.efdRequests = new Set();
+    this.voteviewStale = false;
     this.finance = store.load('finance.json', {}); // raceId -> {fetched_at, level, candidates, error}
+    this.financeRequests = new Set(); // races viewed without finance data yet
     this.reloadResearch();
     this.calls = store.load('calls.json', []);
     this.callKeys = new Set(this.calls.map((c) => `${c.raceId}|${c.winner}|${c.calledBy}`));
@@ -127,7 +140,11 @@ export class Engine {
     const histRows = [];
     const touched = new Set();
     for (const rec of records) {
-      if (!this.byId.has(rec.raceId) && !rec.raceId.startsWith('CONTROL-')) continue;
+      if (!this.byId.has(rec.raceId) && !rec.raceId.startsWith('CONTROL-')) {
+        // A market for a ballot measure that is not in the catalog yet: surface it for Admin.
+        if (rec.raceId.startsWith('BM-')) (this.unmatchedMeasures ||= new Map()).set(`${source}:${rec.market_id}`, { key: `${source.toLowerCase()}:${rec.market_id}`, title: `${rec.title} (measure ${rec.raceId} is not in the catalog; add it in Admin)`, source });
+        continue;
+      }
       if (!this.odds.has(rec.raceId)) this.odds.set(rec.raceId, new Map());
       const bySource = this.odds.get(rec.raceId);
       // A race may have several markets on one source; keep the highest-volume one as primary.
@@ -141,7 +158,7 @@ export class Engine {
         const hk = `${rec.raceId}|${source}|${o.market_id}`;
         const last = this.lastOddsPoint.get(hk);
         if (last && Math.abs(last.p - o.price) < 0.005 && now - Date.parse(last.t) < 5 * 60_000) continue;
-        const row = { t: rec.fetched_at, raceId: rec.raceId, source, market_id: o.market_id, label: o.label, party: o.party, p: o.price, vol: o.volume };
+        const row = { t: rec.fetched_at, raceId: rec.raceId, source, market_id: o.market_id, label: o.label, party: rec.raceId.startsWith('BM-') ? measureSide(o.label) : o.party, p: o.price, vol: o.volume };
         histRows.push(row);
         this.#pushOddsHist(row);
       }
@@ -292,8 +309,8 @@ export class Engine {
       const age = Date.now() - Date.parse(rec.fetched_at);
       const parties = {};
       const outcomes = rec.outcomes.map((o) => {
-        let party = o.party;
-        if (!party && candNames.length) {
+        let party = race?.office === 'BM' ? measureSide(o.label) : o.party;
+        if (!party && race?.office !== 'BM' && candNames.length) {
           const match = candNames.find((c) => lastName(c.name) && ` ${o.label.toLowerCase()} `.includes(` ${lastName(c.name)} `));
           if (match) party = match.party;
         }
@@ -304,7 +321,7 @@ export class Engine {
       sources.push({ ...rec, outcomes, parties, stale: rec.from_snapshot || age > ivl * 1.5, age_ms: age, low_volume: low });
     }
     const avg = {};
-    for (const p of ['D', 'R', 'O']) {
+    for (const p of race?.office === 'BM' ? ['Y', 'N'] : ['D', 'R', 'O']) {
       const vals = sources.filter((s) => s.parties[p] !== undefined).map((s) => s.parties[p]);
       if (vals.length) avg[p] = Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 1000) / 1000;
     }
@@ -409,6 +426,29 @@ export class Engine {
 
   reloadResearch() {
     this.research = loadResearch();
+    this.syncMeasures();
+  }
+
+  /** Ballot measures join the race catalog from the research file and Admin entries. */
+  syncMeasures() {
+    const loaded = loadMeasures();
+    this.measureErrors = loaded.errors;
+    const all = new Map();
+    for (const m of loaded.measures) all.set(measureId(m.state, m.number), m);
+    for (const [id, m] of Object.entries(this.manual.measures || {})) all.set(id, { ...all.get(id), ...m, origin: all.has(id) ? 'research file + Manual' : 'Manual' });
+    this.races = this.races.filter((r) => r.office !== 'BM');
+    for (const [id, m] of all) {
+      const st = BY_POSTAL[m.state];
+      this.races.push({ id, office: 'BM', state: m.state, stateName: st.name, district: null, special: false, format: { threshold: m.threshold || 'majority' }, measure: m, catalog_source_url: m.summary_source_url || `https://ballotpedia.org/${encodeURIComponent(st.name.replace(/ /g, '_'))}_2026_ballot_measures` });
+    }
+    this.byId = new Map(this.races.map((r) => [r.id, r]));
+    this.stateCache = null;
+  }
+
+  measureLookup(state, label, apId) {
+    for (const r of this.races) if (r.office === 'BM' && r.state === state && r.measure.ap_race_id && String(r.measure.ap_race_id) === String(apId)) return r.id;
+    const id = measureId(state, label || '');
+    return id && this.byId.has(id) ? id : null;
   }
 
   profileFor(rid, cand) {
@@ -423,8 +463,9 @@ export class Engine {
     const race = this.byId.get(rid);
     if (!race) return null;
     if (race.office === 'G') return { available: false, reason: 'Governor candidates file with their state, not the FEC. State disclosure sites are not connected yet.' };
+    if (race.office === 'BM') return { available: false, reason: 'Ballot measure committees file with the state; amounts raised are shown from the sourced measure entry.' };
     const f = this.finance[rid];
-    if (!f) return { available: false, reason: 'Not fetched yet. Finance is fetched daily for Tier 1 races from OpenFEC.' };
+    if (!f) return { available: false, pending: this.financeRequests.has(rid), reason: this.financeRequests.has(rid) ? 'Requested from OpenFEC just now; it appears here within a minute if the FEC is reachable.' : 'Not fetched yet.' };
     if (f.error && !f.candidates?.length) return { available: false, reason: `OpenFEC request failed: ${f.error}`, fetched_at: f.fetched_at };
     const cands = this.candidatesFor(rid, this.primaryResult(rid));
     const used = new Set();
@@ -458,7 +499,9 @@ export class Engine {
     return {
       race: { id: r.id, label: officeLabel(r), office: r.office, state: r.state, stateName: r.stateName },
       candidate: c,
-      profile: this.profileFor(rid, c),
+      profile: this.withCongressOffices(rid, c, this.profileFor(rid, c)),
+      voting: this.votingRecordFor(rid, c),
+      disclosures: this.disclosuresFor(rid, c),
       finance: fin?.available ? { ...fin, mine: mine?.finance || null, match: mine?.match || null } : fin,
       opponents: cands.filter((x) => x !== c).map((x) => ({ name: x.name, party: x.party, slug: candidateSlug(x.name) })),
     };
@@ -484,6 +527,124 @@ export class Engine {
       finance: this.financeFor(rid),
       profiles: this.candidatesFor(rid, resV.primary).map((c) => this.profileFor(rid, c)),
       moments: this.momentsFor(rid),
+      past: this.pastFor(rid),
+      lean: this.manual.lean.filter((l) => l.raceId === rid),
+      measure: r.office === 'BM' ? this.measureView(r) : null,
+    };
+  }
+
+  // ---------- Phase 4: past results, voting records, disclosures, measures ----------
+  pastFor(rid) {
+    const r = this.byId.get(rid);
+    if (!r) return null;
+    if (r.office === 'G') return { available: false, reason: 'MIT Election Lab does not publish governor results in its datasets.' };
+    if (r.office === 'BM') return { available: false, reason: 'not applicable to ballot measures' };
+    if (!this.past) return { available: false, reason: 'MIT Election Lab data not loaded yet (downloaded once from Harvard Dataverse at startup).' };
+    const elections = this.past.races[rid] || [];
+    if (!elections.length) return { available: false, reason: 'no earlier general election for this seat in the MIT dataset' };
+    const f = this.past.files?.[r.office === 'S' ? 'senate' : 'house'];
+    return { available: true, elections, president: this.past.president?.[r.state] || [], source: `MIT Election Lab${f?.file ? ` (${f.file})` : ''}`, source_url: f?.url || 'https://electionlab.mit.edu/data', fetched_at: this.past.fetched_at };
+  }
+
+  keyVotes() {
+    const fileVotes = (cfg('key-votes.json').entries || []).map((k) => ({ ...k, origin: 'config/key-votes.json' }));
+    return [...fileVotes, ...this.manual.keyVotes.map((k) => ({ ...k, origin: 'Manual' }))];
+  }
+
+  /** Find the candidate in VoteView by bioguide ID, else by surname + state (+ first name if needed). */
+  memberFor(rid, cand) {
+    if (!this.voteview) return { member: null, reason: 'VoteView data not loaded yet' };
+    const r = this.byId.get(rid);
+    const prof = this.profileFor(rid, cand);
+    let rows;
+    if (prof.bioguide_id) rows = this.voteview.members.filter((m) => m.bioguide_id === prof.bioguide_id);
+    else {
+      rows = this.voteview.members.filter((m) => m.state === r.state && surnameMatches(m.bioname, cand.name));
+      const people = new Set(rows.map((m) => m.icpsr));
+      if (people.size > 1) {
+        const first = nameKey(cand.name).split(' ')[0];
+        rows = rows.filter((m) => {
+          const given = (m.bioname.split(',')[1] || '').trim().toLowerCase().split(/\s+/);
+          return given.some((g) => g && (g.startsWith(first) || first.startsWith(g.replace(/[^a-z]/g, ''))));
+        });
+        if (new Set(rows.map((m) => m.icpsr)).size !== 1) return { member: null, reason: 'More than one former member of Congress from this state shares this surname; set the Bioguide ID in Admin to link the right one.' };
+      }
+    }
+    if (!rows.length) return { member: null, reason: 'No match in VoteView: the candidate has not served in Congress since 1987, or the name differs. Set the Bioguide ID in Admin if they have.' };
+    rows = [...rows].sort((a, b) => b.congress - a.congress);
+    return { member: rows[0], rows, match: prof.bioguide_id ? 'bioguide' : 'name' };
+  }
+
+  votingRecordFor(rid, cand) {
+    const { member, rows, reason, match } = this.memberFor(rid, cand);
+    if (!member) return { available: false, reason };
+    const vv = this.voteview;
+    const cur = member.congress === vv.congress;
+    const part = vv.participation[`${member.chamber}|${member.icpsr}`] || null;
+    const rank = cur ? vv.ranks[`${member.chamber}|${member.icpsr}`] || null : null;
+    const keyVotes = this.keyVotes().filter((k) => k.congress === vv.congress).map((k) => {
+      const key = `${k.chamber}|${k.rollnumber}`;
+      const rowsInChamber = rows.some((m) => m.congress === vv.congress && m.chamber === k.chamber);
+      return { ...k, ...vv.rollInfo[key], position: rowsInChamber ? vv.keyCasts[key]?.[member.icpsr] || 'Not recorded' : null };
+    }).filter((k) => k.position);
+    if (member.bioguide_id && !this.congressMembers[member.bioguide_id]) this.congressRequests.add(member.bioguide_id);
+    const congresses = rows.map((m) => m.congress);
+    return {
+      available: true, match,
+      member: { bioname: member.bioname, bioguide_id: member.bioguide_id, icpsr: member.icpsr, chamber: member.chamber, party: member.party, first_congress: Math.min(...congresses), last_congress: Math.max(...congresses) },
+      ideology: { dim1: member.dim1, dim2: member.dim2, congress: member.congress, chamber: member.chamber, rank },
+      participation: cur && part ? { ...part, rate: part.cast + part.missed ? part.missed / (part.cast + part.missed) : null, congress: vv.congress } : null,
+      keyVotes,
+      keyVotesConfigured: this.keyVotes().length,
+      source: 'VoteView', source_url: `https://voteview.com/person/${member.icpsr}`, fetched_at: vv.fetched_at,
+    };
+  }
+
+  withCongressOffices(rid, cand, profile) {
+    if (profile.offices.length) return profile;
+    const vr = this.memberFor(rid, cand);
+    const rec = vr.member?.bioguide_id ? this.congressMembers[vr.member.bioguide_id] : null;
+    if (!rec?.terms?.length) return profile;
+    return { ...profile, offices: officesFromTerms(rec.terms).map((o) => ({ ...o, source_url: rec.source_url, auto: 'Congress.gov' })), offices_source: 'Congress.gov' };
+  }
+
+  disclosuresFor(rid, cand) {
+    const r = this.byId.get(rid);
+    const out = { house: null, senate: null };
+    const first = nameKey(cand.name).split(' ')[0];
+    const firstOk = (f) => {
+      const g = (f || '').toLowerCase().replace(/[^a-z ]/g, '').split(/\s+/);
+      return g.some((x) => x && (x.startsWith(first) || first.startsWith(x)));
+    };
+    if (this.houseFd) {
+      const mine = this.houseFd.filings.filter((x) => x.state_district.slice(0, 2) === r.state && surnameMatches(`${x.last}, ${x.first}`, cand.name));
+      const people = new Set(mine.map((x) => `${x.last}|${x.first}`.toLowerCase()));
+      const list = people.size > 1 ? mine.filter((x) => firstOk(x.first)) : mine;
+      out.house = { available: true, filings: list.sort((a, b) => Date.parse(b.filed) - Date.parse(a.filed)), ptr_count: list.filter((x) => x.type === 'P').length, source: 'U.S. House Clerk', source_url: this.houseFd.source_url, fetched_at: this.houseFd.fetched_at, years: this.houseFd.years };
+    } else out.house = { available: false, reason: 'House Clerk disclosure index not loaded yet' };
+    if (r.office === 'S') {
+      const key = `${nameKey(cand.name).split(' ').pop()}|${r.state}`;
+      const rec = this.senateFd[key];
+      if (!rec || Date.now() - Date.parse(rec.fetched_at) > 24 * 3600_000) this.efdRequests.add(JSON.stringify({ key, last: cand.name }));
+      if (rec?.error && !rec.reports) out.senate = { available: false, reason: `Senate eFD search failed: ${rec.error}` };
+      else if (rec) {
+        const reports = rec.reports.filter((x) => firstOk(x.first));
+        out.senate = { available: true, reports, ptr_count: reports.filter((x) => x.ptr).length, source: 'U.S. Senate eFD', source_url: rec.source_url, fetched_at: rec.fetched_at, stale: Boolean(rec.error) };
+      } else out.senate = { available: false, pending: true, reason: 'Searching the Senate eFD; check back in a minute.' };
+    }
+    return out;
+  }
+
+  measureView(r) {
+    const m = r.measure;
+    const res = this.resultsView(r.id).primary;
+    const yes = res?.candidates.find((c) => /^yes\b/i.test(c.name));
+    const need = thresholdShare(m.threshold);
+    return {
+      ...m,
+      need,
+      yesPct: yes?.pct ?? null,
+      thresholdNote: yes && res.total && m.threshold && m.threshold !== 'majority' ? `Yes needs ${m.threshold} to pass; it has ${yes.pct.toFixed(1)}%.` : null,
     };
   }
 

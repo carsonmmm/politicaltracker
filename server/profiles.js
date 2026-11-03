@@ -99,6 +99,7 @@ export function buildProfile(base, research, manual) {
   return {
     ...base,
     fec_id: m.fec_id || r.fec_id || base.fec_id || null,
+    bioguide_id: m.bioguide_id || r.bioguide_id || null,
     bio: { ...bio, age: bio.birth_date ? ageOn(bio.birth_date) : bio.age ?? null },
     offices: pick('offices') || [],
     elections: pick('elections') || [],

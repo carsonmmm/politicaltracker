@@ -29,7 +29,7 @@ Needs Node 20 or newer. The two runtime dependencies are the map shapes (`us-atl
 |---|---|
 | `AP_API_KEY` | AP Elections API: live vote counts and AP race calls (paid) |
 | `FEC_API_KEY` | OpenFEC campaign finance: full donor and outside-spending detail (free from api.data.gov; without it, `DEMO_KEY` gives summaries only) |
-| `CONGRESS_API_KEY` | Congress.gov, Phase 4 (free api.data.gov key) |
+| `CONGRESS_API_KEY` | Congress.gov member records (free api.data.gov key; DEMO_KEY used otherwise) |
 | `ADMIN_TOKEN` | Fixed admin password (otherwise a random one is printed at startup) |
 | `PORT`, `DATA_DIR` | Port (8080) and where runtime data is kept (`data/runtime/`) |
 | `LOW_VOLUME_USD`, `LOW_VOLUME_CONTRACTS` | Markets below these volumes are flagged as unreliable (50,000 each) |
@@ -66,12 +66,20 @@ Needs Node 20 or newer. The two runtime dependencies are the map shapes (`us-atl
 * **Finance** comes from OpenFEC for Tier 1 Senate and House races (see `docs/DATA.md`). The FEC lists everyone who filed, so the app links filers to the race's known candidates by last name and party, or by an FEC ID set in Admin. Everyone else appears under "Other FEC filers". Governor finance is reported to the states and shows as Not available.
 * **Profiles** come from `data/candidates-research.json` (ships empty) and Admin → Candidate profile.
 
+## Full coverage (Phase 4)
+
+* **Tiers:** Tier 1 and 2 race pages show everything. Tier 3 pages show a basic card (results, candidates, odds, rating) with the rest one click away. Finance covers Tier 1, plus Tier 2 when `FEC_API_KEY` is set; any race's finance is fetched when someone opens its page.
+* **Ballot measures:** each has a page (`#/race/BM-CA-50`) covering what it does, supporters and opponents with money raised, Yes/No results against the pass threshold, and pass odds.
+* **Past results and partisan lean** on every race page; voting records (DW-NOMINATE, participation, key votes) and personal financial disclosures (House Clerk filings, Senate eFD trade reports) on candidate pages. See `docs/DATA.md`.
+
 ## Files you edit
 
 | File | Purpose | Ships as |
 |---|---|---|
 | `data/results-research.json` | Fallback results refreshed by research (see `docs/DATA.md`) | empty |
 | `data/candidates-research.json` | Candidate profiles and key moments | empty |
+| `data/measures-research.json` | Statewide ballot measures | empty |
+| `config/key-votes.json` | Roll-call votes shown as key votes | empty |
 | `config/ratings.json` | Dated expert ratings | empty |
 | `config/market-map.json` | Force a market onto a race, or ignore it | empty |
 | `config/chamber.json` | Seats not up in 2026 | **unverified**, builder-compiled |

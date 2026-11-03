@@ -2,7 +2,7 @@ export const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&a
 
 export const PARTY_NAME = { D: 'Democrat', R: 'Republican', O: 'Other' };
 export const PARTY_SHORT = { D: 'D', R: 'R', O: 'Ind/Oth' };
-export const OFFICE_NAME = { S: 'Senate', G: 'Governor', H: 'House' };
+export const OFFICE_NAME = { S: 'Senate', G: 'Governor', H: 'House', BM: 'Ballot measure' };
 export const STATUS_LABEL = {
   not_reporting: 'Not yet reporting',
   counting: 'Counting — not called',
@@ -47,12 +47,18 @@ export function statusTag(s) {
 
 /** "Leading" text that never says "won". */
 export function leadText(s) {
+  if (s.status === 'called' && s.call && s.office === 'BM') return `<strong>${/^yes/i.test(s.call.winner) ? 'Passed' : 'Failed'}</strong> — called by ${esc(s.call.calledBy)}`;
   if (s.status === 'called' && s.call) return `${chip(s.call.party)} <strong>${esc(s.call.winner)}</strong> — winner, called by ${esc(s.call.calledBy)}`;
+  if (s.office === 'BM' && s.leader) return `${esc(s.leader.name)} leading${s.marginPct !== null ? ` by ${s.marginPct.toFixed(1)} pts` : ''}`;
   if (s.leader) return `${chip(s.leader.party)} ${esc(s.leader.name)} leading${s.marginPct !== null ? ` by ${s.marginPct.toFixed(1)} pts` : ''}`;
   return '<span class="muted">No votes reported</span>';
 }
 
 export function oddsBar(odds) {
+  if (odds.Y !== undefined || odds.N !== undefined) {
+    const y = odds.Y ?? 1 - (odds.N ?? 0);
+    return `<div class="oddsbar" role="img" aria-label="Market-implied: passes ${pct(odds.Y)}"><span style="width:${y * 100}%;background:var(--accent)"></span><span style="width:${(1 - y) * 100}%;background:var(--muted)"></span></div>`;
+  }
   const D = odds.D ?? 0, R = odds.R ?? 0, O = odds.O ?? 0;
   if (!D && !R && !O) return '<div class="oddsbar" aria-hidden="true"></div>';
   const tot = Math.max(1, D + R + O);
@@ -60,6 +66,7 @@ export function oddsBar(odds) {
 }
 
 export function oddsText(odds) {
+  if (odds.Y !== undefined || odds.N !== undefined) return `<span><b>Passes</b> ${pct(odds.Y)}</span> · <span><b>Fails</b> ${pct(odds.N)}</span>`;
   const parts = ['D', 'R', 'O'].filter((p) => odds[p] !== undefined).map((p) => `<span class="p${p}"><b>${p === 'O' ? 'Oth' : p}</b> ${pct(odds[p])}</span>`);
   return parts.length ? parts.join(' · ') : '<span class="muted">No market found</span>';
 }

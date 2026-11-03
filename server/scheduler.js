@@ -7,6 +7,9 @@ import { store } from './store.js';
 import { mapLimit, nowIso } from './lib/util.js';
 import { createFecAdapter, hasRealKey } from './adapters/fec.js';
 import { surnameMatches } from './adapters/fec.js';
+import { createMitAdapter } from './adapters/mit.js';
+import { createVoteviewAdapter, createCongressAdapter } from './adapters/voteview.js';
+import { createHouseClerkAdapter, createSenateEfdAdapter } from './adapters/disclosures.js';
 
 const HISTORY_START = Date.parse(process.env.HISTORY_START || '2026-09-01T00:00:00Z');
 
@@ -14,7 +17,7 @@ export function startScheduler(engine, { fetchImpl } = {}) {
   const marketMap = () => engine.marketMap();
   let kalshi = createKalshiAdapter({ fetchImpl, marketMap: marketMap() });
   let poly = createPolymarketAdapter({ fetchImpl, marketMap: marketMap() });
-  const resultFeeds = [createApAdapter({ fetchImpl }), createDdhqAdapter(), createFileAdapter()];
+  const resultFeeds = [createApAdapter({ fetchImpl, measureLookup: (st, label, id) => engine.measureLookup(st, label, id) }), createDdhqAdapter(), createFileAdapter()];
   const backfilled = new Set(store.load('backfilled.json', []));
   const stops = [];
 
@@ -106,6 +109,94 @@ export function startScheduler(engine, { fetchImpl } = {}) {
     }
   }, () => (financeWarm ? FINANCE_EVERY : 30_000));
 
+  // On-demand: a race page that has no finance yet asks for it; serve those quickly.
+  loop('OpenFEC on demand', async () => {
+    if (financeRunning || !engine.financeRequests.size) return;
+    financeRunning = true;
+    try {
+      await refreshFinance(engine, fec, { only: true });
+    } finally {
+      financeRunning = false;
+    }
+  }, () => 15_000);
+
+  // ---------- Phase 4 sources ----------
+  const DAY = 24 * 3600_000;
+  const age = (iso) => (iso ? Date.now() - Date.parse(iso) : Infinity);
+
+  // MIT Election Lab past results: download once; retry every 6 h until it works.
+  const mit = createMitAdapter({ fetchImpl });
+  loop('MIT Election Lab', async () => {
+    if (engine.past && !engine.pastError) return engine.feedOk('MIT Election Lab', { interval_ms: 6 * 3600_000, records: Object.keys(engine.past.races).length, note: 'Loaded once; delete data/runtime/past.json to reload' });
+    const past = await mit.fetchAll();
+    engine.past = past;
+    store.save('past.json', past);
+    engine.feedOk('MIT Election Lab', { interval_ms: 6 * 3600_000, records: Object.keys(past.races).length });
+    engine.bump('past');
+  }, () => 6 * 3600_000);
+
+  // VoteView: weekly, or right away when the key-vote list changes.
+  const vv = createVoteviewAdapter({ fetchImpl });
+  let vvRunning = false;
+  loop('VoteView', async () => {
+    if (vvRunning) return;
+    if (engine.voteview && !engine.voteviewStale && age(engine.voteview.fetched_at) < 7 * DAY) return engine.feedOk('VoteView', { interval_ms: 60_000, records: engine.voteview.members.length });
+    vvRunning = true;
+    try {
+      const data = await vv.fetchAll(engine.keyVotes());
+      engine.voteview = data;
+      engine.voteviewStale = false;
+      store.save('voteview.json', data);
+      engine.feedOk('VoteView', { interval_ms: 60_000, records: data.members.length });
+      engine.bump('voteview');
+    } finally {
+      vvRunning = false;
+    }
+  }, () => 60_000);
+
+  // House Clerk disclosure index: weekly, this year and last.
+  const clerk = createHouseClerkAdapter({ fetchImpl });
+  loop('House Clerk disclosures', async () => {
+    if (engine.houseFd && age(engine.houseFd.fetched_at) < 7 * DAY) return engine.feedOk('House Clerk disclosures', { interval_ms: 3600_000, records: engine.houseFd.filings.length });
+    const years = [2026, 2025];
+    const data = { ...(await clerk.fetchYears(years)), years };
+    engine.houseFd = data;
+    store.save('house-disclosures.json', data);
+    engine.feedOk('House Clerk disclosures', { interval_ms: 3600_000, records: data.filings.length });
+    engine.bump('disclosures');
+  }, () => 3600_000);
+
+  // Congress.gov member records and Senate eFD searches: on demand, one at a time.
+  const cg = createCongressAdapter({ fetchImpl });
+  loop('Congress.gov', async () => {
+    const [id] = engine.congressRequests;
+    if (!id) return engine.feeds['Congress.gov'] || engine.feedOk('Congress.gov', { interval_ms: 5_000, records: Object.keys(engine.congressMembers).length });
+    engine.congressRequests.delete(id);
+    engine.congressMembers[id] = await cg.member(id);
+    store.save('congress-members.json', engine.congressMembers);
+    engine.feedOk('Congress.gov', { interval_ms: 5_000, records: Object.keys(engine.congressMembers).length });
+    engine.bump('congress');
+  }, () => 5_000);
+
+  const efd = createSenateEfdAdapter({ fetchImpl });
+  loop('Senate eFD', async () => {
+    const [req] = engine.efdRequests;
+    if (!req) return;
+    engine.efdRequests.delete(req);
+    const { key, last } = JSON.parse(req);
+    const surname = last.split(/\s+/).filter((w) => !/^(jr|sr|ii|iii|iv)\.?$/i.test(w)).pop();
+    try {
+      engine.senateFd[key] = await efd.search(surname);
+      engine.feedOk('Senate eFD', { interval_ms: 10_000, records: Object.keys(engine.senateFd).length });
+    } catch (err) {
+      engine.senateFd[key] = { ...(engine.senateFd[key] || {}), error: err.message, fetched_at: engine.senateFd[key]?.fetched_at || new Date().toISOString() };
+      throw err;
+    } finally {
+      store.save('senate-efd.json', engine.senateFd);
+      engine.bump('efd');
+    }
+  }, () => 10_000);
+
   // Manual entries are loaded once at start and re-merged on every edit.
   engine.ingestResults('Manual', Object.values(engine.manual.results));
   engine.feedOk('Manual', { interval_ms: null });
@@ -134,10 +225,16 @@ export function startScheduler(engine, { fetchImpl } = {}) {
 
 const FINANCE_EVERY = 10 * 60_000; // checks every 10 min for Tier 1 races whose data is over a day old (or new to Tier 1)
 
-export async function refreshFinance(engine, fec, { maxAgeMs = 24 * 3600_000 } = {}) {
-  const races = engine.state().races
-    .filter((r) => r.tier === 1 && (r.office === 'S' || r.office === 'H'))
-    .filter((r) => !engine.finance[r.id] || Date.now() - Date.parse(engine.finance[r.id].fetched_at) > maxAgeMs || engine.finance[r.id].error);
+export async function refreshFinance(engine, fec, { maxAgeMs = 24 * 3600_000, only = null } = {}) {
+  // Order: races someone has opened (any tier), then Tier 1, then Tier 2 (only with a real key,
+  // since DEMO_KEY allows so few requests). Tier 3 is fetched only when a race page is viewed.
+  const due = (id) => !engine.finance[id] || Date.now() - Date.parse(engine.finance[id].fetched_at) > maxAgeMs || engine.finance[id].error;
+  const fedOffice = (r) => r.office === 'S' || r.office === 'H';
+  const all = engine.state().races.filter(fedOffice);
+  const requested = [...engine.financeRequests].map((id) => all.find((r) => r.id === id)).filter(Boolean);
+  const races = (only ? requested : [...requested, ...all.filter((r) => r.tier === 1), ...(hasRealKey() ? all.filter((r) => r.tier === 2) : [])])
+    .filter((r, i, arr) => arr.findIndex((x) => x.id === r.id) === i)
+    .filter((r) => due(r.id) || engine.financeRequests.has(r.id) && !engine.finance[r.id]);
   let done = 0;
   let lastErr = null;
   for (const r of races) {
@@ -165,6 +262,7 @@ export async function refreshFinance(engine, fec, { maxAgeMs = 24 * 3600_000 } =
     const prev = engine.finance[r.id];
     // On failure keep the last good copy with its original fetched_at, so it is labelled stale correctly.
     engine.finance[r.id] = rec.error && !rec.candidates.length && prev?.candidates?.length ? { ...prev, error: rec.error, last_attempt: rec.fetched_at } : rec;
+    engine.financeRequests.delete(r.id);
     store.save('finance.json', engine.finance);
     engine.bump('finance');
     done++;

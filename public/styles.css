@@ -176,3 +176,4 @@ details summary { cursor: pointer; font-weight: 600; }
   h1 { font-size: 1.3rem; }
 }
 #county svg { max-height: 440px; }
+details.more > summary { font-weight: 700; padding: 10px 14px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); }

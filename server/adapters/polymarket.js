@@ -81,6 +81,8 @@ export function normalizeEvent(ev, raceId) {
       const label = m.question || ev.title;
       const party = partyFromLabel(label);
       outcomes.push({ label, party, price: fin(prices[0]), volume: vol, market_id: m.id, token_id: tokens[0] || null });
+      // Keep the No side too: it is its own traded price, not 1 minus Yes.
+      if (Number.isFinite(prices[1])) outcomes.push({ label: 'No', party: null, price: fin(prices[1]), volume: vol, market_id: `${m.id}:no`, token_id: tokens[1] || null });
     } else {
       // Named outcomes, e.g. ["Democratic","Republican"].
       names.forEach((n, i) => outcomes.push({ label: n, party: partyFromLabel(n), price: fin(prices[i]), volume: vol, market_id: `${m.id}:${i}`, token_id: tokens[i] || null }));

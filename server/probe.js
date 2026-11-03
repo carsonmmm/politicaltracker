@@ -13,10 +13,12 @@ export const SOURCES = [
   { id: 'polymarket-clob', name: 'Polymarket CLOB price history', use: 'Odds history backfill', key: 'none', url: () => 'https://clob.polymarket.com/time' },
   { id: 'ap', name: 'AP Elections API', use: 'Vote counts and race calls', key: 'AP_API_KEY (paid)', needsKey: () => !process.env.AP_API_KEY, url: () => `https://api.ap.org/v3/elections?apikey=${process.env.AP_API_KEY || ''}&format=json` },
   { id: 'ddhq', name: 'Decision Desk HQ API', use: 'Vote counts and race calls', key: 'DDHQ credentials (paid)', needsKey: () => true, url: () => 'https://resultsapi.decisiondeskhq.com/' },
-  { id: 'fec', name: 'OpenFEC API', use: 'Campaign finance (Phase 3)', key: 'FEC_API_KEY (free; DEMO_KEY works at low rate limits)', url: () => `https://api.open.fec.gov/v1/candidates/?api_key=${FEC_KEY()}&election_year=2026&office=S&per_page=1` },
-  { id: 'congress', name: 'Congress.gov API', use: 'Voting records (Phase 4)', key: 'CONGRESS_API_KEY (free api.data.gov key)', url: () => `https://api.congress.gov/v3/member?api_key=${DATA_GOV_KEY()}&limit=1&format=json` },
-  { id: 'voteview', name: 'VoteView', use: 'Ideology scores (Phase 4)', key: 'none', url: () => 'https://voteview.com/static/data/out/members/H119_members.csv', head: true },
-  { id: 'mit', name: 'MIT Election Data + Science Lab (Harvard Dataverse)', use: 'Past results (Phase 4)', key: 'none', url: () => 'https://dataverse.harvard.edu/api/info/version' },
+  { id: 'fec', name: 'OpenFEC API', use: 'Campaign finance', key: 'FEC_API_KEY (free; DEMO_KEY works at low rate limits)', url: () => `https://api.open.fec.gov/v1/candidates/?api_key=${FEC_KEY()}&election_year=2026&office=S&per_page=1` },
+  { id: 'congress', name: 'Congress.gov API', use: 'Offices held (member terms)', key: 'CONGRESS_API_KEY (free api.data.gov key)', url: () => `https://api.congress.gov/v3/member?api_key=${DATA_GOV_KEY()}&limit=1&format=json` },
+  { id: 'voteview', name: 'VoteView', use: 'Voting records and ideology scores', key: 'none', url: () => 'https://voteview.com/static/data/out/members/H119_members.csv', head: true },
+  { id: 'mit', name: 'MIT Election Data + Science Lab (Harvard Dataverse)', use: 'Past results', key: 'none', url: () => 'https://dataverse.harvard.edu/api/info/version' },
+  { id: 'house-clerk', name: 'House Clerk financial disclosures', use: 'Personal finances, stock trades (House)', key: 'none', url: () => 'https://disclosures-clerk.house.gov/FinancialDisclosure', head: true },
+  { id: 'senate-efd', name: 'Senate eFD', use: 'Personal finances, stock trades (Senate)', key: 'none', url: () => 'https://efdsearch.senate.gov/search/home/' },
   { id: 'clarity', name: 'Clarity/Scytl ENR (used by several state offices)', use: 'State results fallback', key: 'none', url: () => 'https://results.enr.clarityelections.com/' },
 ];
 

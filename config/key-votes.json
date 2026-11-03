@@ -1,0 +1,4 @@
+{
+  "_note": "Which roll-call votes count as 'key' is an editorial choice, so this list ships EMPTY. Add votes here or in Admin. Each entry: { chamber: 'Senate'|'House', congress: 119, rollnumber: <VoteView roll-call number>, label: 'short neutral description', source_url: 'link to the vote record' }. Each candidate who served in that chamber then shows their recorded vote.",
+  "entries": []
+}
