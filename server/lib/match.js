@@ -15,6 +15,8 @@ const CONTROL_RE = /\b(control|majority|which party (will )?wins?|balance of pow
 const YEAR_OK_RE = /2026|midterm/i;
 const BAD_YEAR_RE = /\b(2024|2028|2030|2032)\b/;
 const PRIMARY_RE = /\bprimary\b|\bnominee\b|\bnomination\b|\brunoff\b/i;
+// Offices that share words with the races we track but are different contests.
+const OTHER_OFFICE_RE = /lieutenant|\blt\.?\s*gov|\bstate\s+(senate|house|legislature|assembly|representative)|\blegislat|\bgeneral assembly\b|\bhouse of delegates\b|\battorney general\b|\bsecretary of state\b|\bmayor\b|\bcity council\b/i;
 
 // District code like "CA-13", "NY 17", "AK-AL".
 const DISTRICT_CODE_RE = /\b([A-Z]{2})[- ]?(\d{1,2}|AL)\b/;
@@ -27,6 +29,7 @@ export function matchMarket({ title = '', subtitle = '', ticker = '', seriesTick
   const text = `${title} ${subtitle}`.trim();
   if (BAD_YEAR_RE.test(text) && !YEAR_OK_RE.test(text)) return null;
   if (PRIMARY_RE.test(text)) return null;
+  if (OTHER_OFFICE_RE.test(text)) return null;
 
   // Kalshi tickers are the most reliable signal when present.
   const t = (seriesTicker || ticker || '').toUpperCase();
@@ -66,7 +69,8 @@ export function matchMarket({ title = '', subtitle = '', ticker = '', seriesTick
   if (isHouse && !isSenate && !isGov) {
     const ord = text.match(DISTRICT_ORDINAL_RE);
     if (ord && validDistrict(state, Number(ord[1]))) return { raceId: raceId('H', state, Number(ord[1])), confidence: 'title' };
-    if (/at-large/i.test(text) && BY_POSTAL[state].house === 1) return { raceId: raceId('H', state, 0), confidence: 'title' };
+    // Single-seat states: accept "at-large" or wording that clearly means the U.S. House.
+    if (BY_POSTAL[state].house === 1 && /at-large|u\.?\s?s\.?\s+house|\bcongress|house seat|house race|\brepresentative\b/i.test(text)) return { raceId: raceId('H', state, 0), confidence: 'title' };
     return null;
   }
   if (isSenate && !isGov) {
@@ -89,7 +93,7 @@ function validDistrict(state, d) {
 export function partyFromLabel(label = '') {
   const l = ` ${label.toLowerCase()} `;
   if (/\bdemocrat(ic|s)?\b|\bdem(s)?\b|\(d\)|\bd\b(?!\.)/.test(l)) return 'D';
-  if (/\brepublican(s)?\b|\bgop\b|\brep(s)?\b|\(r\)|\br\b(?!\.)/.test(l)) return 'R';
+  if (/\brepublican(s)?\b|\bgop\b|\(r\)|\br\b(?!\.)/.test(l)) return 'R';
   if (/\bindependent\b|\(i\)|\blibertarian\b|\bgreen party\b|\bother\b|\bthird[- ]party\b/.test(l)) return 'O';
   return null;
 }

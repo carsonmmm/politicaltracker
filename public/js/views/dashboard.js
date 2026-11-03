@@ -123,10 +123,11 @@ function bop(title, c, baseline, unit) {
 
 function calls(s) {
   if (!s.calls.length) return '<p class="empty">No races have been called by a named outlet yet.</p>';
+  const retracted = (c) => (c.retracted ? ' <span class="tag warn">Withdrawn or corrected — no longer the current call</span>' : '');
   const byId = Object.fromEntries(s.races.map((r) => [r.id, r]));
   return `<ul class="feed">${s.calls.slice(0, 30).map((c) => {
     const r = byId[c.raceId];
-    return `<li>${chip(c.party)} <a href="#/race/${encodeURIComponent(c.raceId)}"><b>${esc(r?.label || c.raceId)}</b></a>: ${esc(c.winner)} (${esc(PARTY_NAME[c.party] || 'Other')}) — called by <b>${esc(c.calledBy)}</b> at ${esc(timeET(c.calledAt))}<div class="src">via ${esc(c.via)}${c.source_url ? ` · <a href="${esc(c.source_url)}" target="_blank" rel="noopener">source</a>` : ''}</div></li>`;
+    return `<li${c.retracted ? ' style="opacity:.6"' : ''}>${chip(c.party)} <a href="#/race/${encodeURIComponent(c.raceId)}"><b>${esc(r?.label || c.raceId)}</b></a>: ${esc(c.winner)} (${esc(PARTY_NAME[c.party] || 'Other')}) — called by <b>${esc(c.calledBy)}</b> at ${esc(timeET(c.calledAt))}${retracted(c)}<div class="src">via ${esc(c.via)}${c.source_url ? ` · <a href="${esc(c.source_url)}" target="_blank" rel="noopener">source</a>` : ''}</div></li>`;
   }).join('')}</ul>`;
 }
 

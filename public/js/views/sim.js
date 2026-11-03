@@ -16,6 +16,7 @@ function storeSaved(list) {
 }
 
 export async function mount(root, ctx) {
+  lastMapKey = ''; // new DOM: always draw the map once
   let last = '';
   try { last = sessionStorage.getItem('lastScenario') || ''; } catch {}
   sc = decodeScenario(ctx.params.query || last);

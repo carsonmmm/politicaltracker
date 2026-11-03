@@ -6,37 +6,72 @@ import { matchMarket, partyFromLabel } from '../lib/match.js';
 export const SOURCE = 'Kalshi';
 const BASE = process.env.KALSHI_BASE || 'https://api.elections.kalshi.com/trade-api/v2';
 const ELECTION_CATEGORY_RE = /election|politic/i;
+const SERIES_CATEGORIES = (process.env.KALSHI_CATEGORIES || 'Elections,Politics').split(',');
+const ELECTORAL_SERIES_RE = /^(SENATE|GOV|HOUSE|CONTROL)/;
 
 export function createKalshiAdapter({ fetchImpl, marketMap = {}, maxPages = 40 } = {}) {
   let known = new Map(); // event_ticker -> {raceId, title, series_ticker}
   let unmatched = [];
 
-  async function discover() {
-    const found = new Map();
-    const misses = [];
+  function consider(ev, found, misses) {
+    if (ev.category && !ELECTION_CATEGORY_RE.test(ev.category)) return;
+    const key = `kalshi:${ev.event_ticker}`;
+    let rid;
+    if (key in marketMap) rid = marketMap[key];
+    else rid = matchMarket({ title: ev.title, subtitle: ev.sub_title, ticker: ev.event_ticker, seriesTicker: ev.series_ticker })?.raceId;
+    if (rid) found.set(ev.event_ticker, { raceId: rid, title: ev.title, series_ticker: ev.series_ticker });
+    else if (rid !== null && looksElectoral(ev.title)) misses.push({ key, title: ev.title, source: SOURCE });
+  }
+
+  // Preferred path: list election/politics series, then their open events.
+  // Paging every open event instead would wade through thousands of sports markets.
+  async function discoverBySeries(found, misses) {
+    const series = new Map();
+    for (const cat of SERIES_CATEGORIES) {
+      const body = await fetchJson(`${BASE}/series?category=${encodeURIComponent(cat)}`, { fetchImpl });
+      for (const s of body.series || []) if (ELECTORAL_SERIES_RE.test(s.ticker || '') || /senate|house|governor|gubernatorial|congress/i.test(s.title || '')) series.set(s.ticker, s);
+    }
+    if (!series.size) return 0;
+    const lists = await mapLimit([...series.keys()], 4, (t) => fetchJson(`${BASE}/events?series_ticker=${encodeURIComponent(t)}&status=open&limit=200`, { fetchImpl }));
+    let ok = 0;
+    for (const body of lists) {
+      if (body?.error) continue;
+      ok++;
+      for (const ev of body.events || []) consider(ev, found, misses);
+    }
+    return ok;
+  }
+
+  async function discoverByPaging(found, misses) {
     let cursor = '';
     for (let page = 0; page < maxPages; page++) {
       const url = `${BASE}/events?status=open&limit=200${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`;
       const body = await fetchJson(url, { fetchImpl });
-      for (const ev of body.events || []) {
-        if (ev.category && !ELECTION_CATEGORY_RE.test(ev.category)) continue;
-        const key = `kalshi:${ev.event_ticker}`;
-        let rid;
-        if (key in marketMap) rid = marketMap[key];
-        else rid = matchMarket({ title: ev.title, subtitle: ev.sub_title, ticker: ev.event_ticker, seriesTicker: ev.series_ticker })?.raceId;
-        if (rid) found.set(ev.event_ticker, { raceId: rid, title: ev.title, series_ticker: ev.series_ticker });
-        else if (rid !== null && looksElectoral(ev.title)) misses.push({ key, title: ev.title, source: SOURCE });
-      }
+      for (const ev of body.events || []) consider(ev, found, misses);
       cursor = body.cursor;
       if (!cursor) break;
     }
+  }
+
+  async function discover() {
+    const found = new Map();
+    const misses = [];
+    let method = 'series';
+    try {
+      const n = await discoverBySeries(found, misses);
+      if (!n) throw new Error('no election series listed');
+    } catch {
+      method = 'paging';
+      await discoverByPaging(found, misses);
+    }
     known = found;
     unmatched = misses;
-    return { matched: found.size, unmatched: misses.length };
+    return { matched: found.size, unmatched: misses.length, method };
   }
 
   async function refresh() {
-    if (known.size === 0) await discover();
+    // Discovery is driven by the scheduler; with nothing discovered there is nothing to refresh.
+    if (known.size === 0) return { records: [], errors: [] };
     const entries = [...known.entries()];
     const results = await mapLimit(entries, 4, async ([ticker, meta]) => {
       const body = await fetchJson(`${BASE}/events/${encodeURIComponent(ticker)}?with_nested_markets=true`, { fetchImpl });

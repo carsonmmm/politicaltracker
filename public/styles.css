@@ -18,6 +18,8 @@
   --bad: #9b1c1c;
   --bad-bg: #fde4e4;
   --live: #c8102e;
+  --live-bg: #c8102e;
+  --on-accent: #ffffff;
   --radius: 8px;
   --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -27,14 +29,14 @@
   :root:not([data-theme="light"]) {
     --bg: #111317; --panel: #191c21; --ink: #e9eaed; --muted: #9aa1ad; --line: #2c3038; --soft: #22262d;
     --dem: #5b93e6; --dem-soft: #213a5e; --rep: #e8625d; --rep-soft: #5a2523; --oth: #c9b46a; --oth-soft: #4a4227; --none: #3a3e46;
-    --accent: #3fbfa5; --warn: #f0c060; --warn-bg: #3a2f12; --bad: #f19393; --bad-bg: #3d1717; --live: #ff4d63;
+    --accent: #3fbfa5; --warn: #f0c060; --warn-bg: #3a2f12; --bad: #f19393; --bad-bg: #3d1717; --live: #ff4d63; --live-bg: #b3102a; --on-accent: #0b1714;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #111317; --panel: #191c21; --ink: #e9eaed; --muted: #9aa1ad; --line: #2c3038; --soft: #22262d;
   --dem: #5b93e6; --dem-soft: #213a5e; --rep: #e8625d; --rep-soft: #5a2523; --oth: #c9b46a; --oth-soft: #4a4227; --none: #3a3e46;
-  --accent: #3fbfa5; --warn: #f0c060; --warn-bg: #3a2f12; --bad: #f19393; --bad-bg: #3d1717; --live: #ff4d63;
+  --accent: #3fbfa5; --warn: #f0c060; --warn-bg: #3a2f12; --bad: #f19393; --bad-bg: #3d1717; --live: #ff4d63; --live-bg: #b3102a; --on-accent: #0b1714;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
@@ -49,7 +51,7 @@ h3 { font-size: 1rem; margin: 0 0 .4rem; }
 .brand { font-weight: 800; font-size: 1.15rem; color: var(--ink); text-decoration: none; letter-spacing: -.01em; }
 .brand span { color: var(--live); }
 .live { font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; padding: 3px 8px; border-radius: 99px; background: var(--soft); color: var(--muted); }
-.live.on { background: var(--live); color: #fff; }
+.live.on { background: var(--live-bg); color: #fff; }
 .live.on::before { content: "● "; animation: pulse 1.6s infinite; }
 .live.down { background: var(--bad-bg); color: var(--bad); }
 @keyframes pulse { 50% { opacity: .35; } }
@@ -80,7 +82,7 @@ main { max-width: 1280px; margin: 0 auto; padding: 16px; outline: none; }
 .tag.bad { background: var(--bad-bg); color: var(--bad); }
 .tag.manual { background: var(--oth-soft); color: var(--ink); }
 .tag.called { background: var(--ink); color: var(--panel); }
-.tag.t1 { background: var(--accent); color: #fff; }
+.tag.t1 { background: var(--accent); color: var(--on-accent); }
 
 .pD { color: var(--dem); } .pR { color: var(--rep); } .pO { color: var(--oth); }
 .chip { display: inline-block; min-width: 1.6em; text-align: center; font-weight: 800; font-size: .75rem; border-radius: 4px; padding: 0 4px; color: #fff; }

@@ -6,7 +6,7 @@ import { matchMarket, partyFromLabel } from '../lib/match.js';
 export const SOURCE = 'Polymarket';
 const BASE = process.env.POLYMARKET_BASE || 'https://gamma-api.polymarket.com';
 const CLOB = process.env.POLYMARKET_CLOB || 'https://clob.polymarket.com';
-const DEFAULT_TAGS = (process.env.POLYMARKET_TAGS || 'midterms,senate,house,governor,us-elections,elections').split(',');
+const DEFAULT_TAGS = (process.env.POLYMARKET_TAGS || 'midterms,senate,house,governor,us-elections,elections,politics').split(',');
 
 export function createPolymarketAdapter({ fetchImpl, marketMap = {}, tags = DEFAULT_TAGS, maxPages = 10 } = {}) {
   let unmatched = [];

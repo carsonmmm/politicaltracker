@@ -5,9 +5,17 @@ import { raceId, nameKey, lastName, partyFromLabel } from './lib/match.js';
 import { ROOT, readJson, nowIso } from './lib/util.js';
 import { store } from './store.js';
 import { loadResearch, buildProfile, candidateKey, candidateSlug } from './profiles.js';
-import { fecLastName } from './adapters/fec.js';
+import { surnameMatches } from './adapters/fec.js';
 
-const cfg = (name) => readJson(path.join(ROOT, 'config', name), {});
+// Config files are re-read at most every 5 s (edits still show up quickly) instead of on every call.
+const cfgCache = new Map();
+const cfg = (name) => {
+  const hit = cfgCache.get(name);
+  if (hit && Date.now() - hit.at < 5000) return hit.data;
+  const data = readJson(path.join(ROOT, 'config', name), {});
+  cfgCache.set(name, { at: Date.now(), data });
+  return data;
+};
 
 export const RESULT_PRIORITY = ['Manual', 'AP', 'Decision Desk HQ', 'State election office', 'Results file'];
 export const LOW_VOLUME = { USD: Number(process.env.LOW_VOLUME_USD || 50000), contracts: Number(process.env.LOW_VOLUME_CONTRACTS || 50000) };
@@ -78,6 +86,7 @@ export class Engine {
     this.lastOddsPoint = new Map();
     const since = Date.now() - 1000 * 60 * 60 * 24 * 120;
     for (const row of store.readHistory('odds.jsonl', { sinceMs: since })) this.#pushOddsHist(row);
+    for (const arr of this.oddsHistory.values()) sortByTime(arr); // backfilled rows sit after live rows in the file
     for (const row of store.readHistory('results.jsonl', { sinceMs: since })) this.#pushResultsHist(row);
     // Restore last snapshot so the app has *labelled stale* odds before the first fetch.
     for (const [rid, bySource] of Object.entries(this.snapshot)) {
@@ -142,14 +151,14 @@ export class Engine {
   }
 
   ingestOddsHistory(rows) {
-    // Backfilled candles from before the app started.
-    const existing = new Set();
+    // Backfilled candles from before the app started. They are older than the
+    // live points already held, so re-sort each touched race to keep time order.
+    const touched = new Set();
     for (const r of rows) {
-      const k = `${r.raceId}|${r.source}|${r.market_id}|${r.t}`;
-      if (existing.has(k)) continue;
-      existing.add(k);
       this.#pushOddsHist(r);
+      touched.add(r.raceId);
     }
+    for (const rid of touched) sortByTime(this.oddsHistory.get(rid));
     store.append('odds.jsonl', rows);
   }
 
@@ -195,6 +204,7 @@ export class Engine {
     // Drop records from this source that disappeared (e.g. removed from the file).
     for (const [rid, m] of this.results) if (m.has(source) && !bySourceSeen.has(rid)) m.delete(source);
     store.append('results.jsonl', histRows);
+    this.#reconcileCalls();
     if (source !== 'Manual' && source !== 'Results file' && records.length) {
       for (const rec of records) (this.resultsSnapshot[rec.raceId] ||= {})[source] = rec;
       store.save('results-snapshot.json', this.resultsSnapshot);
@@ -212,6 +222,18 @@ export class Engine {
     this.callKeys.add(key);
     this.calls.unshift({ raceId: rid, winner: call.winner, party: call.party || null, calledBy: call.calledBy, calledAt: call.calledAt || nowIso(), seen_at: nowIso(), via: source, source_url: call.source_url || null });
     store.save('calls.json', this.calls);
+  }
+
+  /** Mark feed entries whose call no longer stands (corrected manual entry, outlet withdrew it). */
+  #reconcileCalls() {
+    let changed = false;
+    for (const c of this.calls) {
+      const cur = this.primaryResult(c.raceId)?.call;
+      const stands = Boolean(cur?.winner && nameKey(cur.winner) === nameKey(c.winner));
+      if (!stands && !c.retracted) { c.retracted = true; c.retracted_at = nowIso(); changed = true; }
+      else if (stands && c.retracted) { delete c.retracted; delete c.retracted_at; changed = true; }
+    }
+    if (changed) store.save('calls.json', this.calls);
   }
 
   // ----- manual -----
@@ -410,8 +432,7 @@ export class Engine {
       const prof = this.profileFor(rid, c);
       let row = prof.fec_id ? f.candidates.find((x) => x.fec_id === prof.fec_id) : null;
       if (!row) {
-        const ln = lastName(c.name).replace(/[^a-z-]/g, '');
-        const hits = f.candidates.filter((x) => fecLastName(x.fec_name) === ln && !used.has(x.fec_id));
+        const hits = f.candidates.filter((x) => surnameMatches(x.fec_name, c.name) && !used.has(x.fec_id));
         row = hits.find((x) => x.party === c.party) || (hits.length === 1 ? hits[0] : null);
       }
       if (row) used.add(row.fec_id);
@@ -528,6 +549,13 @@ export class Engine {
   }
 
   state() {
+    if (this.stateCache && this.stateCache.version === this.version && Date.now() - this.stateCache.at < 2000) return this.stateCache.value;
+    const value = this.#buildState();
+    this.stateCache = { version: this.version, at: Date.now(), value };
+    return value;
+  }
+
+  #buildState() {
     const summaries = this.races.map((r) => this.raceSummary(r));
     const control = {};
     for (const id of ['CONTROL-S', 'CONTROL-H']) control[id] = this.oddsView(id);
@@ -551,3 +579,7 @@ export class Engine {
 }
 
 export { partyFromLabel };
+
+function sortByTime(arr) {
+  if (arr) arr.sort((a, b) => (a.t < b.t ? -1 : a.t > b.t ? 1 : 0));
+}

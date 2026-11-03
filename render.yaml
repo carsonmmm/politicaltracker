@@ -1,0 +1,19 @@
+# One-click deploy on Render (https://render.com): New > Blueprint > pick this repo.
+# Set ADMIN_TOKEN, and optionally FEC_API_KEY / AP_API_KEY, in the dashboard.
+services:
+  - type: web
+    name: midterm-live
+    runtime: docker
+    plan: starter            # a persistent disk needs a paid plan
+    healthCheckPath: /healthz
+    envVars:
+      - key: ADMIN_TOKEN
+        sync: false
+      - key: FEC_API_KEY
+        sync: false
+      - key: AP_API_KEY
+        sync: false
+    disk:
+      name: data
+      mountPath: /data
+      sizeGB: 1

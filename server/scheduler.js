@@ -6,8 +6,7 @@ import { intervals } from './engine.js';
 import { store } from './store.js';
 import { mapLimit, nowIso } from './lib/util.js';
 import { createFecAdapter, hasRealKey } from './adapters/fec.js';
-import { lastName } from './lib/match.js';
-import { fecLastName } from './adapters/fec.js';
+import { surnameMatches } from './adapters/fec.js';
 
 const HISTORY_START = Date.parse(process.env.HISTORY_START || '2026-09-01T00:00:00Z');
 
@@ -17,10 +16,12 @@ export function startScheduler(engine, { fetchImpl } = {}) {
   let poly = createPolymarketAdapter({ fetchImpl, marketMap: marketMap() });
   const resultFeeds = [createApAdapter({ fetchImpl }), createDdhqAdapter(), createFileAdapter()];
   const backfilled = new Set(store.load('backfilled.json', []));
-  const timers = [];
+  const stops = [];
 
   const loop = (name, fn, every) => {
     let stopped = false;
+    let handle = null; // only the pending timer is kept, so nothing accumulates
+    stops.push(() => { stopped = true; clearTimeout(handle); });
     const tick = async () => {
       if (stopped) return;
       const started = Date.now();
@@ -31,14 +32,27 @@ export function startScheduler(engine, { fetchImpl } = {}) {
         engine.bump(`${name}-error`);
       }
       const wait = Math.max(5_000, every() - (Date.now() - started));
-      const t = setTimeout(tick, wait);
-      timers.push(t);
+      handle = setTimeout(tick, wait);
     };
     tick();
-    return () => (stopped = true);
+  };
+
+  // One discovery at a time; the live adapter is only swapped once the new one has finished.
+  let discovering = null;
+  const runDiscovery = () => {
+    discovering ||= (async () => {
+      const next = createKalshiAdapter({ fetchImpl, marketMap: marketMap() });
+      const r = await next.discover();
+      kalshi = next;
+      engine.unmatched.Kalshi = next.getUnmatched();
+      engine.feedOk('Kalshi discovery', { interval_ms: intervals().discover, ...r });
+      return r;
+    })().finally(() => { discovering = null; });
+    return discovering;
   };
 
   loop('Kalshi', async () => {
+    if (!kalshi.getKnown().size) await runDiscovery();
     const { records, errors } = await kalshi.refresh();
     engine.ingestOdds('Kalshi', records);
     engine.unmatched.Kalshi = kalshi.getUnmatched();
@@ -47,12 +61,7 @@ export function startScheduler(engine, { fetchImpl } = {}) {
     backfillKalshi(records).catch(() => {});
   }, () => intervals().odds);
 
-  loop('Kalshi discovery', async () => {
-    kalshi = createKalshiAdapter({ fetchImpl, marketMap: marketMap() });
-    const r = await kalshi.discover();
-    engine.unmatched.Kalshi = kalshi.getUnmatched();
-    engine.feedOk('Kalshi discovery', { interval_ms: intervals().discover, ...r });
-  }, () => intervals().discover);
+  loop('Kalshi discovery', () => runDiscovery(), () => intervals().discover);
 
   loop('Polymarket', async () => {
     poly = createPolymarketAdapter({ fetchImpl, marketMap: marketMap() });
@@ -120,7 +129,7 @@ export function startScheduler(engine, { fetchImpl } = {}) {
     store.save('backfilled.json', [...backfilled]);
   }
 
-  return { stop: () => timers.forEach(clearTimeout) };
+  return { stop: () => stops.forEach((s) => s()) };
 }
 
 const FINANCE_EVERY = 10 * 60_000; // checks every 10 min for Tier 1 races whose data is over a day old (or new to Tier 1)
@@ -140,7 +149,7 @@ export async function refreshFinance(engine, fec, { maxAgeMs = 24 * 3600_000 } =
         // Detail for the race's known candidates, or the top two fundraisers if none are known yet.
         const known = engine.candidatesFor(r.id, engine.primaryResult(r.id));
         const targets = known.length
-          ? rec.candidates.filter((c) => known.some((k) => fecLastName(c.fec_name) === lastName(k.name).replace(/[^a-z-]/g, '')))
+          ? rec.candidates.filter((c) => known.some((k) => surnameMatches(c.fec_name, k.name)))
           : rec.candidates.slice(0, 2);
         for (const t of targets.slice(0, 4)) {
           const i = rec.candidates.indexOf(t);

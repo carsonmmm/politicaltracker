@@ -131,4 +131,17 @@ export function fecLastName(fecName = '') {
   return (fecName.split(',')[0] || '').trim().toLowerCase().replace(/[^a-z-]/g, '');
 }
 
+/**
+ * Does an FEC filer name ("O'ROURKE, ROBERT") belong to a display name ("Beto O'Rourke")?
+ * Compares letters only and tries every trailing run of words, so compound
+ * surnames ("Monica De La Cruz" vs "DE LA CRUZ, MONICA") match too.
+ */
+export function surnameMatches(fecName, name) {
+  const fec = fecLastName(fecName).replace(/-/g, '');
+  if (!fec) return false;
+  const words = String(name).toLowerCase().replace(/\(.*?\)/g, ' ').replace(/,?\s+\b(jr|sr|ii|iii|iv)\b\.?/g, ' ').split(/\s+/).filter(Boolean);
+  for (let k = 1; k < words.length; k++) if (words.slice(k).join('').replace(/[^a-z]/g, '') === fec) return true;
+  return words.length === 1 && words[0].replace(/[^a-z]/g, '') === fec;
+}
+
 export const fecMeta = (fetched_at = nowIso()) => ({ source: SOURCE, fetched_at });

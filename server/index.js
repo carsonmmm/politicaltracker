@@ -56,6 +56,11 @@ setInterval(() => {
 }, 25_000);
 
 // ---------- admin helpers ----------
+function tokenOk(given) {
+  const a = Buffer.from(String(given || ''));
+  const b = Buffer.from(ADMIN_TOKEN);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
 const err400 = (msg) => Object.assign(new Error(msg), { code: 400 });
 const need = (cond, msg) => {
   if (!cond) throw err400(msg);
@@ -166,6 +171,7 @@ const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://x');
   const p = url.pathname;
   try {
+    if (p === '/healthz') return send(res, 200, { ok: true, version: engine.version, uptime_s: Math.round(process.uptime()) });
     if (p === '/api/state') return send(res, 200, engine.state());
     if (p.startsWith('/api/race/')) {
       const d = engine.raceDetail(decodeURIComponent(p.slice(10)));
@@ -194,7 +200,7 @@ const server = http.createServer(async (req, res) => {
       return send(res, 200, lastProbe);
     }
     if (p.startsWith('/api/admin/')) {
-      if (req.headers['x-admin-token'] !== ADMIN_TOKEN) return send(res, 401, { error: 'Admin token required' });
+      if (!tokenOk(req.headers['x-admin-token'])) return send(res, 401, { error: 'Admin token required' });
       const action = p.slice(11);
       if (action === 'check') return send(res, 200, { ok: true });
       if (action === 'manual') return send(res, 200, engine.manual);
@@ -210,7 +216,8 @@ const server = http.createServer(async (req, res) => {
     if (file.startsWith(path.join(ROOT, 'public')) && fs.existsSync(file) && fs.statSync(file).isFile()) return serveFile(res, file);
     return send(res, 404, 'Not found');
   } catch (err) {
-    return send(res, err.code === 400 ? 400 : 500, { error: err.message });
+    const bad = err.code === 400 || err instanceof SyntaxError; // SyntaxError = malformed JSON body
+    return send(res, bad ? 400 : 500, { error: err instanceof SyntaxError ? 'Request body is not valid JSON' : err.message });
   }
 });
 

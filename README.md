@@ -70,6 +70,13 @@ Needs Node 20 or newer. The two runtime dependencies are the map shapes (`us-atl
 
 Everything can also be entered or corrected in the **Admin** page, where entries are labelled Manual.
 
+## Deploy (so you can open it from a phone)
+
+* **Render:** push this repo, then New → Blueprint and pick it. `render.yaml` sets up the service, a health check and a 1 GB disk for history. Set `ADMIN_TOKEN` (and `FEC_API_KEY`, `AP_API_KEY` if you have them) in the dashboard.
+* **Any Docker host** (Fly.io, Railway, a VPS): `docker build -t midterm-live . && docker run -p 8080:8080 -v midterm-data:/data -e ADMIN_TOKEN=... midterm-live`
+* Keep `/data` on a persistent volume, or odds history, snapshots and manual entries are lost on redeploy.
+* Health check: `GET /healthz`.
+
 ## Testing without network access
 
 `test/mock-upstream.js` is a fake Kalshi/Polymarket/AP server with obviously fake candidates ("Test Candidate-A"). It exists only to exercise the pipeline:

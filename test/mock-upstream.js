@@ -75,7 +75,16 @@ export function createMock() {
   return http.createServer((req, res) => {
     const u = new URL(req.url, 'http://x');
     const json = (b) => { res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(b)); };
-    if (u.pathname === '/kalshi/events') return json({ events: kalshiEvents(), cursor: '' });
+    if (u.pathname === '/kalshi/series') {
+      if (process.env.MOCK_NO_SERIES) { res.writeHead(404); return res.end('{}'); }
+      const cat = u.searchParams.get('category');
+      const all = [...new Set(kalshiEvents().map((e) => e.series_ticker))].map((t) => ({ ticker: t, title: t, category: t === 'NFL' ? 'Sports' : 'Elections' }));
+      return json({ series: all.filter((x) => x.category === cat) });
+    }
+    if (u.pathname === '/kalshi/events') {
+      const st = u.searchParams.get('series_ticker');
+      return json({ events: kalshiEvents().filter((e) => !st || e.series_ticker === st), cursor: '' });
+    }
     let m;
     if ((m = u.pathname.match(/^\/kalshi\/events\/(.+)$/))) {
       const ev = kalshiEvents().find((e) => e.event_ticker === decodeURIComponent(m[1]));
