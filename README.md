@@ -100,6 +100,14 @@ Needs Node 20 or newer. The two runtime dependencies are the map shapes (`us-atl
 
 Everything can also be entered or corrected in the **Admin** page, where entries are labelled Manual.
 
+## Checked against the real APIs
+
+`npm run smoke` runs every adapter against the live sources and prints what it found. GitHub Actions runs it on each push (job "smoke", informational). The latest run on GitHub's servers:
+
+* **Working:** Kalshi (about 390 race markets with prices), Polymarket (every Senate, governor and House race, plus chamber control), OpenFEC (DEMO_KEY), Congress.gov, House Clerk disclosures, VoteView, Harvard Dataverse.
+* **Blocked:** Senate eFD refuses automated searches from data-center addresses (bot protection). Pages say so and link to the manual search. It may work from a home connection.
+* **Not tested:** AP and Decision Desk HQ (paid keys), and state Clarity sites (no 2026 URLs configured).
+
 ## Deploy (so you can open it from a phone)
 
 * **Render:** push this repo, then New → Blueprint and pick it. `render.yaml` sets up the service, a health check and a 1 GB disk for history. Set `ADMIN_TOKEN` (and `FEC_API_KEY`, `AP_API_KEY` if you have them) in the dashboard.

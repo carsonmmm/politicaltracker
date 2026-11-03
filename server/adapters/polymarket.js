@@ -88,8 +88,8 @@ export function normalizeEvent(ev, raceId) {
       names.forEach((n, i) => outcomes.push({ label: n, party: partyFromLabel(n), price: fin(prices[i]), volume: vol, market_id: `${m.id}:${i}`, token_id: tokens[i] || null }));
     }
   }
-  // Unlaunched slots ("Party A", "Option B", "Person A") have no price; leave them out.
-  const real = outcomes.filter((o) => !(o.price === null && /^(party|option|person|candidate|other)\s+[a-z0-9]$/i.test(String(o.label).trim())));
+  // Outcomes with no price have never traded (unlaunched slots like "Party A", "Other"); leave them out.
+  const real = outcomes.filter((o) => o.price !== null);
   outcomes.length = 0;
   outcomes.push(...real);
   return {

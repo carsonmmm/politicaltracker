@@ -16,7 +16,7 @@ const CONTROL_RE = /\b(control|majority|which party (will )?wins?|balance of pow
 const YEAR_OK_RE = /2026|midterm/i;
 const BAD_YEAR_RE = /\b(2024|2025|2027|2028|2029|2030|2032)\b/;
 // Markets about a race that are not "who wins" (timing, comparisons, margins, counts, candidacies).
-const NON_RACE_RE = /\bwhen will\b|\bwho will run\b|\bwill .* run for\b|\bcloser\b|\bclosest\b|\bhow many\b|\bmargin\b|\bwin by\b|\bby how much\b|\bturnout\b|\bpopular vote\b|\bvote share\b|\bseats\b|\bconcede\b|\brecount\b|\bdebate\b|\bendorse|\bspeaker\b|\btrifecta\b|\bsupermajority\b|\bbefore\b.*\bcall|\bcalled\b|&/i;
+const NON_RACE_RE = /\bwhen will\b|\bwho will run\b|\bwill .* run for\b|\bcloser\b|\bclosest\b|\bhow many\b|\bmargin\b|\bwin by\b|\bby how much\b|\bturnout\b|\bpopular vote\b|\bvote share\b|\bseats\b|\bconcede\b|\brecount\b|\bdebate\b|\bendorse|\bspeaker\b|\bleader\b|\bfirst round\b|\boutright\b|\bavoid (a )?runoff\b|\btrifecta\b|\bsupermajority\b|\bbefore\b.*\bcall|\bcalled\b|&/i;
 const PRIMARY_RE = /\bprimary\b|\bnominee\b|\bnomination\b|\brunoff\b/i;
 // Offices that share words with the races we track but are different contests.
 const OTHER_OFFICE_RE = /lieutenant|\blt\.?\s*gov|\bstate\s+(senate|house|legislature|assembly|representative)|\blegislat|\bgeneral assembly\b|\bhouse of delegates\b|\battorney general\b|\bsecretary of state\b|\bmayor\b|\bcity council\b/i;

@@ -48,3 +48,26 @@ test('Polymarket placeholder outcomes with no price are dropped', () => {
   ] }, 'G-AZ');
   assert.deepEqual(rec.outcomes.map((o) => `${o.party}:${o.price}`), ['D:0.935', 'R:0.065']);
 });
+
+test('real Polymarket titles: leadership and first-round markets are not race winners', () => {
+  assert.equal(m('Next Senate Majority Leader?'), null);
+  assert.equal(m('First Round Outright Winner in the Georgia Senate Election?'), null);
+  assert.equal(m('First Round Outright Winner in the GA-14 House Election?'), null);
+  assert.equal(m('Georgia Senate Election Winner'), 'S-GA');
+});
+
+test('person-only markets borrow party labels from another source for the same race', async () => {
+  const fs = await import('node:fs');
+  const os = await import('node:os');
+  const path = await import('node:path');
+  process.env.DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'ml-np-'));
+  const { Engine } = await import('../server/engine.js');
+  const e = new Engine();
+  const t = new Date().toISOString();
+  e.ingestOdds('Polymarket', [{ raceId: 'S-MI', source: 'Polymarket', fetched_at: t, volume: 9e6, volume_unit: 'USD', outcomes: [{ label: 'Abdul El-Sayed (D)', party: 'D', price: 0.77, market_id: 'p1' }, { label: 'Mike Rogers (R)', party: 'R', price: 0.23, market_id: 'p2' }] }]);
+  e.ingestOdds('Kalshi', [{ raceId: 'S-MI', source: 'Kalshi', fetched_at: t, volume: 4e6, volume_unit: 'contracts', outcomes: [{ label: 'Abdul El-Sayed', party: null, price: 0.78, market_id: 'k1' }, { label: 'Mike Rogers', party: null, price: 0.22, market_id: 'k2' }, { label: 'Haley Stevens', party: null, price: 0.01, market_id: 'k3' }] }]);
+  const v = e.oddsView('S-MI');
+  const k = v.sources.find((s) => s.source === 'Kalshi');
+  assert.deepEqual(k.parties, { D: 0.78, R: 0.22 }, 'unknown names (Stevens) are left out, not guessed');
+  assert.equal(v.avg.D, 0.775);
+});

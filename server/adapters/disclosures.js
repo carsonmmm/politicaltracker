@@ -140,7 +140,8 @@ export function createSenateEfdAdapter({ fetchImpl } = {}) {
       const csrf = jar.get('csrftoken') || jar.get('csrf');
       const params = new URLSearchParams({ start: '0', length: '100', report_types: '[7, 11]', filer_types: '[1, 4]', submitted_start_date: `${startDate} 00:00:00`, submitted_end_date: '', candidate_state: '', senator_state: '', office_id: '', first_name: '', last_name: lastName, csrfmiddlewaretoken: csrf || '' });
       const res = await f(`${EFD}/search/report/data/`, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', Cookie: jar.header(), Referer: `${EFD}/search/`, 'X-CSRFToken': csrf || '', 'User-Agent': 'midterm-live/0.1' }, body: params.toString() });
-      if (!res.ok) throw new Error(`Senate eFD HTTP ${res.status} at search step (cookies: ${[...jar.names()].join(', ') || 'none'})`);
+      if (res.status === 403 && [...jar.names()].some((n) => /^bm_|^ak_|^_abck/.test(n))) throw new Error('the Senate eFD site blocked the automated search (bot protection). Search by hand at https://efdsearch.senate.gov/search/');
+      if (!res.ok) throw new Error(`Senate eFD HTTP ${res.status} at search step`);
       const body = await res.json();
       const reports = (body.data || []).map((row) => {
         const link = (row[3] || '').match(/href="([^"]+)"/)?.[1] || null;

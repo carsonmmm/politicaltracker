@@ -305,14 +305,22 @@ export class Engine {
     const ivl = intervals().odds;
     const sources = [];
     const candNames = race ? this.candidatesFor(rid, this.primaryResult(rid)) : [];
+    // Party labels for names, from sourced data: the race's candidate list, outcome labels that
+    // carry a party on any market (e.g. Polymarket "Jane Doe (D)"), and FEC filings. Used for
+    // markets that list people without parties (e.g. Kalshi "(Person)" markets).
+    const nameParty = new Map();
+    const learn = (name, party) => { const ln = lastName(name); if (ln && party && !nameParty.has(ln)) nameParty.set(ln, party); };
+    for (const c of candNames) learn(c.name, c.party);
+    for (const rec of bySource?.values() || []) for (const o of rec.outcomes) if (o.party && /\([DRI]\)|\b(democrat|republican|independent)/i.test(o.label) && !/^(democratic|republican|independent)\b/i.test(o.label.trim())) learn(o.label, o.party);
+    for (const f of this.finance[rid]?.candidates || []) learn(f.name, f.party);
     for (const [src, rec] of bySource || []) {
       const age = Date.now() - Date.parse(rec.fetched_at);
       const parties = {};
       const outcomes = rec.outcomes.map((o) => {
         let party = race?.office === 'BM' ? measureSide(o.label) : o.party;
-        if (!party && race?.office !== 'BM' && candNames.length) {
+        if (!party && race?.office !== 'BM') {
           const match = candNames.find((c) => lastName(c.name) && ` ${o.label.toLowerCase()} `.includes(` ${lastName(c.name)} `));
-          if (match) party = match.party;
+          party = match?.party || nameParty.get(lastName(o.label)) || null;
         }
         if (party && o.price !== null) parties[party] = Math.round(((parties[party] || 0) + o.price) * 1000) / 1000;
         return { ...o, party };
