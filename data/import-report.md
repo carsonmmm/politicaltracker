@@ -1,4 +1,4 @@
-# Import report — 2026-11-05T06:48:53.352Z
+# Import report — 2026-11-05T19:58:19.468Z
 
 Polymarket: 64 races with a winner market.
 Incumbents marked from VoteView: 57
@@ -15,11 +15,11 @@ Names skipped because no source gave a party (11):
 - G-AK: "Click Bishop" 0% — no party label
 - H-AK-00: "Bill Hill" 6% — no party label
 - H-AK-00: "Jim McDermott" 0% — no party label
-- H-CA-07: "Mai Vang" 14% — no party label
-- H-CA-11: "Scott Wiener" 86% — no party label
+- H-CA-07: "Mai Vang" 6% — no party label
+- H-CA-11: "Scott Wiener" 98% — no party label
 - H-CA-11: "Connie Chan" 1% — no party label
-- G-CA: "Julieta Ramírez Padilla" 61% — no party label
-- G-CA: "Ismael Burgueño Ruiz" 10% — no party label
+- G-CA: "Julieta Ramírez Padilla" 63% — no party label
+- G-CA: "Ismael Burgueño Ruiz" 11% — no party label
 - G-CA: "Gustavo Macalpin" 5% — no party label (5%+ in market)
 
 Market vs. Wikipedia disagreements (135):
