@@ -1,4 +1,4 @@
-# Import report — 2026-11-06T06:50:14.105Z
+# Import report — 2026-11-06T19:25:56.185Z
 
 Polymarket: 40 races with a winner market.
 Incumbents marked from VoteView: 40
@@ -9,18 +9,16 @@ Senate baseline from senate.gov: 100 senators; not up: D 32, R 31, I 2.
 
 ## Needs a human look
 
-Names skipped because no source gave a party (11):
+Names skipped because no source gave a party (9):
 - S-AK: "Ann Diener" 0% — no party label
 - S-AK: "Dustin Darden" 0% — no party label
 - G-AK: "Click Bishop" 0% — no party label
-- H-AK-00: "Bill Hill" 4% — no party label
+- H-AK-00: "Bill Hill" 5% — no party label
 - H-AK-00: "Jim McDermott" 0% — no party label
-- H-CA-07: "Mai Vang" 4% — no party label
-- H-CA-11: "Scott Wiener" 99% — no party label
-- H-CA-11: "Connie Chan" 0% — no party label
-- G-CA: "Julieta Ramírez Padilla" 64% — no party label
-- G-CA: "Ismael Burgueño Ruiz" 12% — no party label
-- G-CA: "Gustavo Macalpin" 5% — no party label (5%+ in market)
+- H-CA-07: "Mai Vang" 2% — no party label
+- G-CA: "Julieta Ramírez Padilla" 67% — no party label
+- G-CA: "Ismael Burgueño Ruiz" 11% — no party label
+- G-CA: "Gustavo Macalpin" 6% — no party label (5%+ in market)
 
 Market vs. Wikipedia disagreements (135):
 - S-AL: Wikipedia lists Barry Moore (R); the market does not

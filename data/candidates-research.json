@@ -35,7 +35,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/alaska-governor-election-winner",
-          "note": "top two in market; 1% at import; party from Wikipedia"
+          "note": "top two in market; 0% at import; party from Wikipedia"
         },
         {
           "name": "Wikipedia",
@@ -548,7 +548,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/kansas-governor-winner-2026",
-          "note": "highest-priced R in market; 0% at import"
+          "note": "highest-priced R in market; 1% at import"
         },
         {
           "name": "Wikipedia",
@@ -900,7 +900,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/new-york-governor-election-nassau-county-winner",
-          "note": "highest-priced D in market; 81% at import"
+          "note": "highest-priced D in market; 77% at import"
         },
         {
           "name": "Wikipedia",
@@ -921,7 +921,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/new-york-governor-election-nassau-county-winner",
-          "note": "highest-priced R in market; 18% at import"
+          "note": "highest-priced R in market; 10% at import"
         },
         {
           "name": "Wikipedia",
@@ -1401,7 +1401,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/az-02-house-election-winner",
-          "note": "highest-priced D in market; 5% at import"
+          "note": "highest-priced D in market; 4% at import"
         }
       ]
     },
@@ -1419,7 +1419,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/az-02-house-election-winner",
-          "note": "highest-priced R in market; 94% at import"
+          "note": "highest-priced R in market; 96% at import"
         },
         {
           "name": "VoteView (119th Congress member list)",
@@ -1474,7 +1474,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/az-08-house-election-winner",
-          "note": "highest-priced D in market; 5% at import"
+          "note": "highest-priced D in market; 0% at import"
         }
       ]
     },
@@ -1492,7 +1492,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/az-08-house-election-winner",
-          "note": "highest-priced R in market; 96% at import"
+          "note": "highest-priced R in market; 100% at import"
         },
         {
           "name": "VoteView (119th Congress member list)",
@@ -1514,7 +1514,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/ca-07-house-election-winner-by-individual-20260706153650362",
-          "note": "top two in market; 95% at import; party from VoteView (119th Congress member list)"
+          "note": "top two in market; 97% at import; party from VoteView (119th Congress member list)"
         },
         {
           "name": "VoteView (119th Congress member list)",
@@ -1536,7 +1536,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/ca-23-house-election-winner",
-          "note": "top two in market; 94% at import"
+          "note": "top two in market; 88% at import"
         },
         {
           "name": "VoteView (119th Congress member list)",
@@ -1557,7 +1557,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/ca-23-house-election-winner",
-          "note": "top two in market; 6% at import"
+          "note": "top two in market; 11% at import"
         }
       ]
     },
@@ -1574,7 +1574,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/ca-40-house-election-winner-individual-20260710020901480",
-          "note": "top two in market; 93% at import; party from VoteView (119th Congress member list)"
+          "note": "top two in market; 96% at import; party from VoteView (119th Congress member list)"
         }
       ]
     },
@@ -1592,7 +1592,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/ca-40-house-election-winner-individual-20260710020901480",
-          "note": "top two in market; 6% at import; party from VoteView (119th Congress member list)"
+          "note": "top two in market; 4% at import; party from VoteView (119th Congress member list)"
         },
         {
           "name": "VoteView (119th Congress member list)",
@@ -1613,7 +1613,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/co-03-house-election-winner",
-          "note": "highest-priced D in market; 1% at import"
+          "note": "highest-priced D in market; 0% at import"
         }
       ]
     },
@@ -1631,7 +1631,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/co-03-house-election-winner",
-          "note": "highest-priced R in market; 99% at import"
+          "note": "highest-priced R in market; 100% at import"
         },
         {
           "name": "VoteView (119th Congress member list)",
@@ -1652,7 +1652,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/co-04-house-election-winner",
-          "note": "highest-priced D in market; 99% at import"
+          "note": "highest-priced D in market; 97% at import"
         }
       ]
     },
@@ -1670,7 +1670,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/co-04-house-election-winner",
-          "note": "highest-priced R in market; 1% at import"
+          "note": "highest-priced R in market; 3% at import"
         },
         {
           "name": "VoteView (119th Congress member list)",
@@ -1726,7 +1726,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/fl-09-house-election-winner",
-          "note": "highest-priced D in market; 99% at import"
+          "note": "highest-priced D in market; 98% at import"
         },
         {
           "name": "VoteView (119th Congress member list)",
@@ -1781,7 +1781,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/fl-27-house-election-winner",
-          "note": "highest-priced D in market; 1% at import"
+          "note": "highest-priced D in market; 2% at import"
         }
       ]
     },
@@ -1837,7 +1837,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/me-02-house-election-winner-20260720160226434",
-          "note": "highest-priced R in market; 100% at import"
+          "note": "highest-priced R in market; 99% at import"
         }
       ]
     },
@@ -1872,7 +1872,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/mn-01-house-election-winner",
-          "note": "highest-priced R in market; 5% at import"
+          "note": "highest-priced R in market; 3% at import"
         },
         {
           "name": "VoteView (119th Congress member list)",
@@ -1893,7 +1893,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/nc-03-house-election-winner",
-          "note": "highest-priced D in market; 77% at import"
+          "note": "highest-priced D in market; 81% at import"
         }
       ]
     },
@@ -1911,7 +1911,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/nc-03-house-election-winner",
-          "note": "highest-priced R in market; 24% at import"
+          "note": "highest-priced R in market; 20% at import"
         },
         {
           "name": "VoteView (119th Congress member list)",
@@ -1950,7 +1950,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/nc-05-house-election-winner",
-          "note": "highest-priced R in market; 5% at import"
+          "note": "highest-priced R in market; 4% at import"
         },
         {
           "name": "VoteView (119th Congress member list)",
@@ -1971,7 +1971,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/nc-07-house-election-winner",
-          "note": "highest-priced D in market; 2% at import"
+          "note": "highest-priced D in market; 3% at import"
         }
       ]
     },
@@ -1989,7 +1989,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/nc-07-house-election-winner",
-          "note": "highest-priced R in market; 98% at import"
+          "note": "highest-priced R in market; 97% at import"
         },
         {
           "name": "VoteView (119th Congress member list)",
@@ -2088,7 +2088,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/ny-21-house-election-winner",
-          "note": "highest-priced D in market; 1% at import"
+          "note": "highest-priced D in market; 0% at import"
         }
       ]
     },
@@ -2105,7 +2105,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/ny-21-house-election-winner",
-          "note": "highest-priced R in market; 99% at import"
+          "note": "highest-priced R in market; 100% at import"
         }
       ]
     },
@@ -2122,7 +2122,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/sc-01-house-election-winner",
-          "note": "highest-priced D in market; 99% at import"
+          "note": "highest-priced D in market; 100% at import"
         }
       ]
     },
@@ -2156,7 +2156,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/sc-02-house-election-winner",
-          "note": "highest-priced D in market; 1% at import"
+          "note": "highest-priced D in market; 2% at import"
         }
       ]
     },
@@ -2174,7 +2174,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/sc-02-house-election-winner",
-          "note": "highest-priced R in market; 99% at import"
+          "note": "highest-priced R in market; 98% at import"
         },
         {
           "name": "VoteView (119th Congress member list)",
@@ -2195,7 +2195,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/tn-04-house-election-winner",
-          "note": "highest-priced D in market; 96% at import"
+          "note": "highest-priced D in market; 97% at import"
         }
       ]
     },
@@ -2213,7 +2213,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/tn-04-house-election-winner",
-          "note": "highest-priced R in market; 3% at import"
+          "note": "highest-priced R in market; 4% at import"
         },
         {
           "name": "VoteView (119th Congress member list)",
@@ -2235,7 +2235,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/wa-05-house-election-winner",
-          "note": "top two in market; 96% at import"
+          "note": "top two in market; 95% at import"
         },
         {
           "name": "VoteView (119th Congress member list)",
@@ -2256,7 +2256,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/wa-05-house-election-winner",
-          "note": "top two in market; 4% at import"
+          "note": "top two in market; 5% at import"
         }
       ]
     },
@@ -2690,7 +2690,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/kansas-senate-election-leavenworth-county-winner",
-          "note": "highest-priced D in market; 43% at import"
+          "note": "highest-priced D in market; 42% at import"
         },
         {
           "name": "Wikipedia",
@@ -2712,7 +2712,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/kansas-senate-election-leavenworth-county-winner",
-          "note": "highest-priced R in market; 54% at import"
+          "note": "highest-priced R in market; 56% at import"
         },
         {
           "name": "Wikipedia",
@@ -2976,7 +2976,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/mississippi-senate-election-winner",
-          "note": "highest-priced D in market; 98% at import"
+          "note": "highest-priced D in market; 99% at import"
         },
         {
           "name": "Wikipedia",
@@ -3662,5 +3662,5 @@
     }
   ],
   "moments": [],
-  "imported_at": "2026-11-06T06:50:14.105Z"
+  "imported_at": "2026-11-06T19:25:56.185Z"
 }
