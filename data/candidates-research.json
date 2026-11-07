@@ -156,17 +156,13 @@
       "incumbent": false,
       "listing_only": true,
       "researched_at": "2026-11-07",
-      "source": "Polymarket market listing + Wikipedia",
-      "source_url": "https://polymarket.com/event/arizona-governor-election-maricopa-county-winner",
+      "source": "Wikipedia",
+      "source_url": "https://en.wikipedia.org/wiki/2026_Arizona_gubernatorial_election",
       "sources": [
         {
-          "name": "Polymarket market listing",
-          "url": "https://polymarket.com/event/arizona-governor-election-maricopa-county-winner",
-          "note": "highest-priced D in market; 99% at import"
-        },
-        {
           "name": "Wikipedia",
-          "url": "https://en.wikipedia.org/wiki/2026_Arizona_gubernatorial_election"
+          "url": "https://en.wikipedia.org/wiki/2026_Arizona_gubernatorial_election",
+          "note": "nominee in infobox; not in the market listing"
         }
       ]
     },
@@ -177,17 +173,13 @@
       "incumbent": false,
       "listing_only": true,
       "researched_at": "2026-11-07",
-      "source": "Polymarket market listing + Wikipedia",
-      "source_url": "https://polymarket.com/event/arizona-governor-election-maricopa-county-winner",
+      "source": "Wikipedia",
+      "source_url": "https://en.wikipedia.org/wiki/2026_Arizona_gubernatorial_election",
       "sources": [
         {
-          "name": "Polymarket market listing",
-          "url": "https://polymarket.com/event/arizona-governor-election-maricopa-county-winner",
-          "note": "highest-priced R in market; 1% at import"
-        },
-        {
           "name": "Wikipedia",
-          "url": "https://en.wikipedia.org/wiki/2026_Arizona_gubernatorial_election"
+          "url": "https://en.wikipedia.org/wiki/2026_Arizona_gubernatorial_election",
+          "note": "nominee in infobox; not in the market listing"
         }
       ]
     },
@@ -852,17 +844,13 @@
       "incumbent": false,
       "listing_only": true,
       "researched_at": "2026-11-07",
-      "source": "Polymarket market listing + Wikipedia",
-      "source_url": "https://polymarket.com/event/nevada-governor-election-washoe-county-winner",
+      "source": "Wikipedia",
+      "source_url": "https://en.wikipedia.org/wiki/2026_Nevada_gubernatorial_election",
       "sources": [
         {
-          "name": "Polymarket market listing",
-          "url": "https://polymarket.com/event/nevada-governor-election-washoe-county-winner",
-          "note": "highest-priced D in market; 99% at import"
-        },
-        {
           "name": "Wikipedia",
-          "url": "https://en.wikipedia.org/wiki/2026_Nevada_gubernatorial_election"
+          "url": "https://en.wikipedia.org/wiki/2026_Nevada_gubernatorial_election",
+          "note": "nominee in infobox; not in the market listing"
         }
       ]
     },
@@ -873,17 +861,13 @@
       "incumbent": false,
       "listing_only": true,
       "researched_at": "2026-11-07",
-      "source": "Polymarket market listing + Wikipedia",
-      "source_url": "https://polymarket.com/event/nevada-governor-election-washoe-county-winner",
+      "source": "Wikipedia",
+      "source_url": "https://en.wikipedia.org/wiki/2026_Nevada_gubernatorial_election",
       "sources": [
         {
-          "name": "Polymarket market listing",
-          "url": "https://polymarket.com/event/nevada-governor-election-washoe-county-winner",
-          "note": "highest-priced R in market; 0% at import"
-        },
-        {
           "name": "Wikipedia",
-          "url": "https://en.wikipedia.org/wiki/2026_Nevada_gubernatorial_election"
+          "url": "https://en.wikipedia.org/wiki/2026_Nevada_gubernatorial_election",
+          "note": "nominee in infobox; not in the market listing"
         }
       ]
     },
@@ -900,7 +884,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/new-york-governor-election-nassau-county-winner",
-          "note": "highest-priced D in market; 74% at import"
+          "note": "highest-priced D in market; 92% at import"
         },
         {
           "name": "Wikipedia",
@@ -921,7 +905,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/new-york-governor-election-nassau-county-winner",
-          "note": "highest-priced R in market; 10% at import"
+          "note": "highest-priced R in market; 6% at import"
         },
         {
           "name": "Wikipedia",
@@ -1441,7 +1425,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/ca-07-house-election-winner-by-individual-20260706153650362",
-          "note": "top two in market; 96% at import; party from VoteView (119th Congress member list)"
+          "note": "top two in market; 98% at import; party from VoteView (119th Congress member list)"
         },
         {
           "name": "VoteView (119th Congress member list)",
@@ -1463,7 +1447,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/ca-23-house-election-winner",
-          "note": "top two in market; 95% at import"
+          "note": "top two in market; 96% at import"
         },
         {
           "name": "VoteView (119th Congress member list)",
@@ -1484,7 +1468,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/ca-23-house-election-winner",
-          "note": "top two in market; 4% at import"
+          "note": "top two in market; 3% at import"
         }
       ]
     },
@@ -1501,7 +1485,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/ca-40-house-election-winner-individual-20260710020901480",
-          "note": "top two in market; 97% at import; party from VoteView (119th Congress member list)"
+          "note": "top two in market; 95% at import; party from VoteView (119th Congress member list)"
         }
       ]
     },
@@ -1596,7 +1580,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/fl-07-house-election-winner",
-          "note": "highest-priced R in market; 99% at import"
+          "note": "highest-priced R in market; 98% at import"
         }
       ]
     },
@@ -1725,7 +1709,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/me-02-house-election-winner-20260720160226434",
-          "note": "highest-priced R in market; 100% at import"
+          "note": "highest-priced R in market; 99% at import"
         }
       ]
     },
@@ -1781,7 +1765,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/nc-03-house-election-winner",
-          "note": "highest-priced D in market; 79% at import"
+          "note": "highest-priced D in market; 80% at import"
         }
       ]
     },
@@ -1877,7 +1861,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/nc-07-house-election-winner",
-          "note": "highest-priced R in market; 98% at import"
+          "note": "highest-priced R in market; 99% at import"
         },
         {
           "name": "VoteView (119th Congress member list)",
@@ -1937,7 +1921,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/sc-02-house-election-winner",
-          "note": "highest-priced D in market; 2% at import"
+          "note": "highest-priced D in market; 1% at import"
         }
       ]
     },
@@ -2493,7 +2477,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/kansas-senate-election-leavenworth-county-winner",
-          "note": "highest-priced R in market; 52% at import"
+          "note": "highest-priced R in market; 51% at import"
         },
         {
           "name": "Wikipedia",
@@ -3426,5 +3410,5 @@
     }
   ],
   "moments": [],
-  "imported_at": "2026-11-07T05:59:46.495Z"
+  "imported_at": "2026-11-07T13:04:05.675Z"
 }
