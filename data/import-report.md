@@ -1,9 +1,9 @@
-# Import report — 2026-11-06T19:25:56.185Z
+# Import report — 2026-11-07T05:59:46.495Z
 
-Polymarket: 40 races with a winner market.
-Incumbents marked from VoteView: 40
-Candidates written: 199 listing entries across 95 races (plus 0 researched profiles kept).
-Races with no candidates found: 411 — H-AL-01, H-AL-02, H-AL-03, H-AL-04, H-AL-05, H-AL-06, H-AL-07, H-AK-00, H-AZ-01, H-AZ-03, H-AZ-04, H-AZ-06, H-AZ-07, H-AZ-09, H-AR-01, H-AR-02, H-AR-03, H-AR-04, H-CA-01, H-CA-02, H-CA-03, H-CA-04, H-CA-05, H-CA-06, H-CA-08, H-CA-09, H-CA-10, H-CA-11, H-CA-12, H-CA-13, H-CA-14, H-CA-15, H-CA-16, H-CA-17, H-CA-18, H-CA-19, H-CA-20, H-CA-21, H-CA-22, H-CA-24, H-CA-25, H-CA-26, H-CA-27, H-CA-28, H-CA-29, H-CA-30, H-CA-31, H-CA-32, H-CA-33, H-CA-34, H-CA-35, H-CA-36, H-CA-37, H-CA-38, H-CA-39, H-CA-41, H-CA-42, H-CA-43, H-CA-44, H-CA-45…
+Polymarket: 32 races with a winner market.
+Incumbents marked from VoteView: 37
+Candidates written: 186 listing entries across 89 races (plus 0 researched profiles kept).
+Races with no candidates found: 417 — H-AL-01, H-AL-02, H-AL-03, H-AL-04, H-AL-05, H-AL-06, H-AL-07, H-AK-00, H-AZ-01, H-AZ-03, H-AZ-04, H-AZ-05, H-AZ-06, H-AZ-07, H-AZ-08, H-AZ-09, H-AR-01, H-AR-02, H-AR-03, H-AR-04, H-CA-01, H-CA-02, H-CA-03, H-CA-04, H-CA-05, H-CA-06, H-CA-08, H-CA-09, H-CA-10, H-CA-11, H-CA-12, H-CA-13, H-CA-14, H-CA-15, H-CA-16, H-CA-17, H-CA-18, H-CA-19, H-CA-20, H-CA-21, H-CA-22, H-CA-24, H-CA-25, H-CA-26, H-CA-27, H-CA-28, H-CA-29, H-CA-30, H-CA-31, H-CA-32, H-CA-33, H-CA-34, H-CA-35, H-CA-36, H-CA-37, H-CA-38, H-CA-39, H-CA-41, H-CA-42, H-CA-43…
 Races with candidates from only one party (check, may be uncontested): 3 — H-CA-07, H-CA-40, H-FL-26
 Senate baseline from senate.gov: 100 senators; not up: D 32, R 31, I 2.
 
@@ -16,11 +16,11 @@ Names skipped because no source gave a party (9):
 - H-AK-00: "Bill Hill" 5% — no party label
 - H-AK-00: "Jim McDermott" 0% — no party label
 - H-CA-07: "Mai Vang" 2% — no party label
-- G-CA: "Julieta Ramírez Padilla" 67% — no party label
-- G-CA: "Ismael Burgueño Ruiz" 11% — no party label
-- G-CA: "Gustavo Macalpin" 6% — no party label (5%+ in market)
+- G-CA: "Julieta Ramírez Padilla" 64% — no party label
+- G-CA: "Ismael Burgueño Ruiz" 12% — no party label
+- G-CA: "Gustavo Macalpin" 5% — no party label (5%+ in market)
 
-Market vs. Wikipedia disagreements (135):
+Market vs. Wikipedia disagreements (134):
 - S-AL: Wikipedia lists Barry Moore (R); the market does not
 - S-AL: Wikipedia lists Everett Wess (D); the market does not
 - S-AR: Wikipedia lists Tom Cotton (R); the market does not
@@ -47,7 +47,6 @@ Market vs. Wikipedia disagreements (135):
 - S-LA: Wikipedia lists Jamie Davis (D); the market does not
 - S-MA: Wikipedia lists Ed Markey (D); the market does not
 - S-MA: Wikipedia lists John Deaton (R); the market does not
-- S-MA: Wikipedia lists Joe Tache (O); the market does not
 - S-ME: Wikipedia lists Troy Jackson (D); the market does not
 - S-ME: Wikipedia lists Susan Collins (R); the market does not
 - S-MN: Wikipedia lists Peggy Flanagan (D); the market does not
