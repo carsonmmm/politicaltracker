@@ -14,7 +14,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/alaska-governor-election-winner",
-          "note": "top two in market; 100% at import; party from Wikipedia"
+          "note": "top two in market; 99% at import; party from Wikipedia"
         },
         {
           "name": "Wikipedia",
@@ -35,7 +35,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/alaska-governor-election-winner",
-          "note": "top two in market; 0% at import; party from Wikipedia"
+          "note": "top two in market; 1% at import; party from Wikipedia"
         },
         {
           "name": "Wikipedia",
@@ -519,7 +519,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/kansas-governor-winner-2026",
-          "note": "highest-priced D in market; 100% at import"
+          "note": "highest-priced D in market; 99% at import"
         },
         {
           "name": "Wikipedia",
@@ -1403,7 +1403,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/az-02-house-election-winner",
-          "note": "highest-priced R in market; 99% at import"
+          "note": "highest-priced R in market; 98% at import"
         },
         {
           "name": "VoteView (119th Congress member list)",
@@ -1619,7 +1619,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/fl-09-house-election-winner",
-          "note": "highest-priced R in market; 1% at import"
+          "note": "highest-priced R in market; 0% at import"
         }
       ]
     },
@@ -1692,7 +1692,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/me-02-house-election-winner-20260720160226434",
-          "note": "highest-priced D in market; 1% at import"
+          "note": "highest-priced D in market; 0% at import"
         }
       ]
     },
@@ -1744,7 +1744,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/mn-01-house-election-winner",
-          "note": "highest-priced R in market; 3% at import"
+          "note": "highest-priced R in market; 2% at import"
         },
         {
           "name": "VoteView (119th Congress member list)",
@@ -1765,7 +1765,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/nc-03-house-election-winner",
-          "note": "highest-priced D in market; 87% at import"
+          "note": "highest-priced D in market; 85% at import"
         }
       ]
     },
@@ -1804,7 +1804,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/nc-05-house-election-winner",
-          "note": "highest-priced D in market; 98% at import"
+          "note": "highest-priced D in market; 97% at import"
         }
       ]
     },
@@ -1822,7 +1822,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/nc-05-house-election-winner",
-          "note": "highest-priced R in market; 2% at import"
+          "note": "highest-priced R in market; 4% at import"
         },
         {
           "name": "VoteView (119th Congress member list)",
@@ -2455,7 +2455,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/kansas-senate-election-leavenworth-county-winner",
-          "note": "highest-priced D in market; 39% at import"
+          "note": "highest-priced D in market; 34% at import"
         },
         {
           "name": "Wikipedia",
@@ -2477,7 +2477,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/kansas-senate-election-leavenworth-county-winner",
-          "note": "highest-priced R in market; 58% at import"
+          "note": "highest-priced R in market; 64% at import"
         },
         {
           "name": "Wikipedia",
@@ -3410,5 +3410,5 @@
     }
   ],
   "moments": [],
-  "imported_at": "2026-11-08T13:27:21.431Z"
+  "imported_at": "2026-11-08T22:07:46.129Z"
 }
