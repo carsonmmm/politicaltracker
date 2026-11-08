@@ -884,7 +884,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/new-york-governor-election-nassau-county-winner",
-          "note": "highest-priced D in market; 86% at import"
+          "note": "highest-priced D in market; 90% at import"
         },
         {
           "name": "Wikipedia",
@@ -905,7 +905,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/new-york-governor-election-nassau-county-winner",
-          "note": "highest-priced R in market; 6% at import"
+          "note": "highest-priced R in market; 4% at import"
         },
         {
           "name": "Wikipedia",
@@ -1447,7 +1447,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/ca-23-house-election-winner",
-          "note": "top two in market; 99% at import"
+          "note": "top two in market; 97% at import"
         },
         {
           "name": "VoteView (119th Congress member list)",
@@ -1468,7 +1468,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/ca-23-house-election-winner",
-          "note": "top two in market; 2% at import"
+          "note": "top two in market; 3% at import"
         }
       ]
     },
@@ -1503,7 +1503,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/ca-40-house-election-winner-individual-20260710020901480",
-          "note": "top two in market; 1% at import; party from VoteView (119th Congress member list)"
+          "note": "top two in market; 2% at import; party from VoteView (119th Congress member list)"
         },
         {
           "name": "VoteView (119th Congress member list)",
@@ -1692,7 +1692,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/me-02-house-election-winner-20260720160226434",
-          "note": "highest-priced D in market; 0% at import"
+          "note": "highest-priced D in market; 1% at import"
         }
       ]
     },
@@ -1709,7 +1709,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/me-02-house-election-winner-20260720160226434",
-          "note": "highest-priced R in market; 99% at import"
+          "note": "highest-priced R in market; 100% at import"
         }
       ]
     },
@@ -1783,7 +1783,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/nc-03-house-election-winner",
-          "note": "highest-priced R in market; 13% at import"
+          "note": "highest-priced R in market; 14% at import"
         },
         {
           "name": "VoteView (119th Congress member list)",
@@ -1861,7 +1861,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/nc-07-house-election-winner",
-          "note": "highest-priced R in market; 98% at import"
+          "note": "highest-priced R in market; 99% at import"
         },
         {
           "name": "VoteView (119th Congress member list)",
@@ -2000,7 +2000,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/wa-05-house-election-winner",
-          "note": "top two in market; 99% at import"
+          "note": "top two in market; 98% at import"
         },
         {
           "name": "VoteView (119th Congress member list)",
@@ -2455,7 +2455,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/kansas-senate-election-leavenworth-county-winner",
-          "note": "highest-priced D in market; 33% at import"
+          "note": "highest-priced D in market; 39% at import"
         },
         {
           "name": "Wikipedia",
@@ -2477,7 +2477,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/kansas-senate-election-leavenworth-county-winner",
-          "note": "highest-priced R in market; 48% at import"
+          "note": "highest-priced R in market; 58% at import"
         },
         {
           "name": "Wikipedia",
@@ -3410,5 +3410,5 @@
     }
   ],
   "moments": [],
-  "imported_at": "2026-11-08T06:04:05.718Z"
+  "imported_at": "2026-11-08T13:27:21.431Z"
 }
