@@ -1,4 +1,4 @@
-# Import report — 2026-11-07T21:52:31.056Z
+# Import report — 2026-11-08T06:04:05.718Z
 
 Polymarket: 30 races with a winner market.
 Incumbents marked from VoteView: 37
@@ -13,11 +13,11 @@ Names skipped because no source gave a party (8):
 - S-AK: "Ann Diener" 0% — no party label
 - S-AK: "Dustin Darden" 0% — no party label
 - G-AK: "Click Bishop" 0% — no party label
-- H-AK-00: "Bill Hill" 6% — no party label
+- H-AK-00: "Bill Hill" 8% — no party label
 - H-AK-00: "Jim McDermott" 0% — no party label
-- H-CA-07: "Mai Vang" 4% — no party label
-- G-CA: "Julieta Ramírez Padilla" 66% — no party label
-- G-CA: "Ismael Burgueño Ruiz" 11% — no party label
+- H-CA-07: "Mai Vang" 2% — no party label
+- G-CA: "Julieta Ramírez Padilla" 65% — no party label
+- G-CA: "Ismael Burgueño Ruiz" 9% — no party label
 
 Market vs. Wikipedia disagreements (138):
 - S-AL: Wikipedia lists Barry Moore (R); the market does not
