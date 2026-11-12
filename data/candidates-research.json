@@ -519,7 +519,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/kansas-governor-winner-2026",
-          "note": "highest-priced D in market; 99% at import"
+          "note": "highest-priced D in market; 100% at import"
         },
         {
           "name": "Wikipedia",
@@ -905,7 +905,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/new-york-governor-election-nassau-county-winner",
-          "note": "highest-priced R in market; 8% at import"
+          "note": "highest-priced R in market; 7% at import"
         },
         {
           "name": "Wikipedia",
@@ -1386,7 +1386,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/ca-23-house-election-winner",
-          "note": "top two in market; 99% at import"
+          "note": "top two in market; 100% at import"
         },
         {
           "name": "VoteView (119th Congress member list)",
@@ -1497,7 +1497,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/mn-01-house-election-winner",
-          "note": "highest-priced D in market; 96% at import"
+          "note": "highest-priced D in market; 98% at import"
         }
       ]
     },
@@ -1515,7 +1515,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/mn-01-house-election-winner",
-          "note": "highest-priced R in market; 4% at import"
+          "note": "highest-priced R in market; 2% at import"
         },
         {
           "name": "VoteView (119th Congress member list)",
@@ -1554,7 +1554,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/nc-05-house-election-winner",
-          "note": "highest-priced R in market; 1% at import"
+          "note": "highest-priced R in market; 0% at import"
         },
         {
           "name": "VoteView (119th Congress member list)",
@@ -1692,7 +1692,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/alaska-senate-election-winner",
-          "note": "top two in market; 99% at import"
+          "note": "top two in market; 100% at import"
         },
         {
           "name": "Wikipedia",
@@ -1714,7 +1714,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/alaska-senate-election-winner",
-          "note": "top two in market; 1% at import"
+          "note": "top two in market; 0% at import"
         },
         {
           "name": "Wikipedia",
@@ -2092,7 +2092,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/kansas-senate-election-leavenworth-county-winner",
-          "note": "highest-priced D in market; 28% at import"
+          "note": "highest-priced D in market; 41% at import"
         },
         {
           "name": "Wikipedia",
@@ -2114,7 +2114,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/kansas-senate-election-leavenworth-county-winner",
-          "note": "highest-priced R in market; 52% at import"
+          "note": "highest-priced R in market; 50% at import"
         },
         {
           "name": "Wikipedia",
@@ -2285,7 +2285,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/michigan-senate-election-macomb-county-winner",
-          "note": "highest-priced D in market; 8% at import"
+          "note": "highest-priced D in market; 7% at import"
         },
         {
           "name": "Wikipedia",
@@ -3039,5 +3039,5 @@
     }
   ],
   "moments": [],
-  "imported_at": "2026-11-12T07:13:14.224Z"
+  "imported_at": "2026-11-12T19:55:52.105Z"
 }
