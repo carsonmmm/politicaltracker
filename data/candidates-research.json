@@ -24,27 +24,6 @@
     },
     {
       "raceId": "G-AK",
-      "name": "Bernadette Wilson",
-      "party": "R",
-      "incumbent": false,
-      "listing_only": true,
-      "researched_at": "2026-11-13",
-      "source": "Polymarket market listing + Wikipedia",
-      "source_url": "https://polymarket.com/event/alaska-governor-election-winner",
-      "sources": [
-        {
-          "name": "Polymarket market listing",
-          "url": "https://polymarket.com/event/alaska-governor-election-winner",
-          "note": "top two in market; 0% at import; party from Wikipedia"
-        },
-        {
-          "name": "Wikipedia",
-          "url": "https://en.wikipedia.org/wiki/2026_Alaska_gubernatorial_election"
-        }
-      ]
-    },
-    {
-      "raceId": "G-AK",
       "name": "David Bronson",
       "party": "R",
       "incumbent": false,
@@ -876,7 +855,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/new-york-governor-election-nassau-county-winner",
-          "note": "highest-priced D in market; 93% at import"
+          "note": "highest-priced D in market; 59% at import"
         },
         {
           "name": "Wikipedia",
@@ -897,7 +876,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/new-york-governor-election-nassau-county-winner",
-          "note": "highest-priced R in market; 4% at import"
+          "note": "highest-priced R in market; 7% at import"
         },
         {
           "name": "Wikipedia",
@@ -2050,7 +2029,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/kansas-senate-election-leavenworth-county-winner",
-          "note": "highest-priced D in market; 11% at import"
+          "note": "highest-priced D in market; 10% at import"
         },
         {
           "name": "Wikipedia",
@@ -2072,7 +2051,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/kansas-senate-election-leavenworth-county-winner",
-          "note": "highest-priced R in market; 77% at import"
+          "note": "highest-priced R in market; 63% at import"
         },
         {
           "name": "Wikipedia",
@@ -2997,5 +2976,5 @@
     }
   ],
   "moments": [],
-  "imported_at": "2026-11-13T06:47:53.258Z"
+  "imported_at": "2026-11-13T19:43:39.958Z"
 }
