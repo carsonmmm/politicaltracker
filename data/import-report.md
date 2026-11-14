@@ -1,9 +1,9 @@
-# Import report — 2026-11-13T19:43:39.958Z
+# Import report — 2026-11-14T06:26:07.467Z
 
-Polymarket: 17 races with a winner market.
-Incumbents marked from VoteView: 29
-Candidates written: 164 listing entries across 78 races (plus 0 researched profiles kept).
-Races with no candidates found: 428 — H-AL-01, H-AL-02, H-AL-03, H-AL-04, H-AL-05, H-AL-06, H-AL-07, H-AK-00, H-AZ-01, H-AZ-02, H-AZ-03, H-AZ-04, H-AZ-05, H-AZ-06, H-AZ-07, H-AZ-08, H-AZ-09, H-AR-01, H-AR-02, H-AR-03, H-AR-04, H-CA-01, H-CA-02, H-CA-03, H-CA-04, H-CA-05, H-CA-06, H-CA-07, H-CA-08, H-CA-09, H-CA-10, H-CA-11, H-CA-12, H-CA-13, H-CA-14, H-CA-15, H-CA-16, H-CA-17, H-CA-18, H-CA-19, H-CA-20, H-CA-21, H-CA-22, H-CA-24, H-CA-25, H-CA-26, H-CA-27, H-CA-28, H-CA-29, H-CA-30, H-CA-31, H-CA-32, H-CA-33, H-CA-34, H-CA-35, H-CA-36, H-CA-37, H-CA-38, H-CA-39, H-CA-40…
+Polymarket: 15 races with a winner market.
+Incumbents marked from VoteView: 28
+Candidates written: 162 listing entries across 77 races (plus 0 researched profiles kept).
+Races with no candidates found: 429 — H-AL-01, H-AL-02, H-AL-03, H-AL-04, H-AL-05, H-AL-06, H-AL-07, H-AK-00, H-AZ-01, H-AZ-02, H-AZ-03, H-AZ-04, H-AZ-05, H-AZ-06, H-AZ-07, H-AZ-08, H-AZ-09, H-AR-01, H-AR-02, H-AR-03, H-AR-04, H-CA-01, H-CA-02, H-CA-03, H-CA-04, H-CA-05, H-CA-06, H-CA-07, H-CA-08, H-CA-09, H-CA-10, H-CA-11, H-CA-12, H-CA-13, H-CA-14, H-CA-15, H-CA-16, H-CA-17, H-CA-18, H-CA-19, H-CA-20, H-CA-21, H-CA-22, H-CA-24, H-CA-25, H-CA-26, H-CA-27, H-CA-28, H-CA-29, H-CA-30, H-CA-31, H-CA-32, H-CA-33, H-CA-34, H-CA-35, H-CA-36, H-CA-37, H-CA-38, H-CA-39, H-CA-40…
 Races with candidates from only one party (check, may be uncontested): 0
 Senate baseline from senate.gov: 100 senators; not up: D 32, R 31, I 2.
 
@@ -14,9 +14,9 @@ Names skipped because no source gave a party (8):
 - S-AK: "Dustin Darden" 0% — no party label
 - G-AK: "Click Bishop" 0% — no party label
 - G-AK: "Adam Crum" 0% — no party label
-- H-AK-00: "Bill Hill" 4% — no party label
+- H-AK-00: "Bill Hill" 1% — no party label
 - H-AK-00: "Jim McDermott" 0% — no party label
-- G-CA: "Julieta Ramírez Padilla" 61% — no party label
+- G-CA: "Julieta Ramírez Padilla" 73% — no party label
 - G-CA: "Ismael Burgueño Ruiz" 12% — no party label
 
 Market vs. Wikipedia disagreements (142):
