@@ -8,38 +8,30 @@
       "incumbent": false,
       "listing_only": true,
       "researched_at": "2026-11-14",
-      "source": "Polymarket market listing + Wikipedia",
-      "source_url": "https://polymarket.com/event/alaska-governor-election-winner",
+      "source": "Wikipedia",
+      "source_url": "https://en.wikipedia.org/wiki/2026_Alaska_gubernatorial_election",
       "sources": [
         {
-          "name": "Polymarket market listing",
-          "url": "https://polymarket.com/event/alaska-governor-election-winner",
-          "note": "top two in market; 100% at import; party from Wikipedia"
-        },
-        {
           "name": "Wikipedia",
-          "url": "https://en.wikipedia.org/wiki/2026_Alaska_gubernatorial_election"
+          "url": "https://en.wikipedia.org/wiki/2026_Alaska_gubernatorial_election",
+          "note": "nominee in infobox; not in the market listing"
         }
       ]
     },
     {
       "raceId": "G-AK",
-      "name": "David Bronson",
+      "name": "Bernadette Wilson",
       "party": "R",
       "incumbent": false,
       "listing_only": true,
       "researched_at": "2026-11-14",
-      "source": "Polymarket market listing + Wikipedia",
-      "source_url": "https://polymarket.com/event/alaska-governor-election-winner",
+      "source": "Wikipedia",
+      "source_url": "https://en.wikipedia.org/wiki/2026_Alaska_gubernatorial_election",
       "sources": [
         {
-          "name": "Polymarket market listing",
-          "url": "https://polymarket.com/event/alaska-governor-election-winner",
-          "note": "top two in market; 0% at import; party from Wikipedia"
-        },
-        {
           "name": "Wikipedia",
-          "url": "https://en.wikipedia.org/wiki/2026_Alaska_gubernatorial_election"
+          "url": "https://en.wikipedia.org/wiki/2026_Alaska_gubernatorial_election",
+          "note": "nominee in infobox; not in the market listing"
         }
       ]
     },
@@ -1357,7 +1349,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/ca-23-house-election-winner",
-          "note": "top two in market; 100% at import"
+          "note": "top two in market; 99% at import"
         },
         {
           "name": "VoteView (119th Congress member list)",
@@ -1413,7 +1405,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/mn-01-house-election-winner",
-          "note": "highest-priced R in market; 2% at import"
+          "note": "highest-priced R in market; 3% at import"
         },
         {
           "name": "VoteView (119th Congress member list)",
@@ -1569,7 +1561,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/tn-04-house-election-winner",
-          "note": "highest-priced R in market; 1% at import"
+          "note": "highest-priced R in market; 2% at import"
         },
         {
           "name": "VoteView (119th Congress member list)",
@@ -1990,7 +1982,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/kansas-senate-election-leavenworth-county-winner",
-          "note": "highest-priced D in market; 17% at import"
+          "note": "highest-priced D in market; 10% at import"
         },
         {
           "name": "Wikipedia",
@@ -2012,7 +2004,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/kansas-senate-election-leavenworth-county-winner",
-          "note": "highest-priced R in market; 63% at import"
+          "note": "highest-priced R in market; 75% at import"
         },
         {
           "name": "Wikipedia",
@@ -2183,7 +2175,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/michigan-senate-election-macomb-county-winner",
-          "note": "highest-priced D in market; 8% at import"
+          "note": "highest-priced D in market; 7% at import"
         },
         {
           "name": "Wikipedia",
@@ -2937,5 +2929,5 @@
     }
   ],
   "moments": [],
-  "imported_at": "2026-11-14T06:26:07.467Z"
+  "imported_at": "2026-11-14T18:04:06.872Z"
 }
