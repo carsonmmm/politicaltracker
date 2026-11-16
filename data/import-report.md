@@ -1,4 +1,4 @@
-# Import report — 2026-11-15T18:52:59.179Z
+# Import report — 2026-11-16T06:32:22.038Z
 
 Polymarket: 14 races with a winner market.
 Incumbents marked from VoteView: 28
@@ -15,7 +15,7 @@ Names skipped because no source gave a party (6):
 - H-AK-00: "Bill Hill" 1% — no party label
 - H-AK-00: "Jim McDermott" 0% — no party label
 - G-CA: "Julieta Ramírez Padilla" 71% — no party label
-- G-CA: "Ismael Burgueño Ruiz" 12% — no party label
+- G-CA: "Ismael Burgueño Ruiz" 11% — no party label
 
 Market vs. Wikipedia disagreements (144):
 - S-AL: Wikipedia lists Barry Moore (R); the market does not
