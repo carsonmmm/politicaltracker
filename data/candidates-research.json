@@ -847,7 +847,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/new-york-governor-election-nassau-county-winner",
-          "note": "highest-priced D in market; 63% at import"
+          "note": "highest-priced D in market; 94% at import"
         },
         {
           "name": "Wikipedia",
@@ -868,7 +868,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/new-york-governor-election-nassau-county-winner",
-          "note": "highest-priced R in market; 3% at import"
+          "note": "highest-priced R in market; 2% at import"
         },
         {
           "name": "Wikipedia",
@@ -1366,7 +1366,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/mn-01-house-election-winner",
-          "note": "highest-priced R in market; 2% at import"
+          "note": "highest-priced R in market; 3% at import"
         },
         {
           "name": "VoteView (119th Congress member list)",
@@ -1865,7 +1865,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/kansas-senate-election-leavenworth-county-winner",
-          "note": "highest-priced D in market; 45% at import"
+          "note": "highest-priced D in market; 44% at import"
         },
         {
           "name": "Wikipedia",
@@ -1887,7 +1887,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/kansas-senate-election-leavenworth-county-winner",
-          "note": "highest-priced R in market; 54% at import"
+          "note": "highest-priced R in market; 52% at import"
         },
         {
           "name": "Wikipedia",
@@ -2058,7 +2058,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/michigan-senate-election-macomb-county-winner",
-          "note": "highest-priced D in market; 7% at import"
+          "note": "highest-priced D in market; 2% at import"
         },
         {
           "name": "Wikipedia",
@@ -2812,5 +2812,5 @@
     }
   ],
   "moments": [],
-  "imported_at": "2026-11-17T07:56:23.153Z"
+  "imported_at": "2026-11-17T20:56:49.711Z"
 }
