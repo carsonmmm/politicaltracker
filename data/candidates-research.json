@@ -847,7 +847,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/new-york-governor-election-nassau-county-winner",
-          "note": "highest-priced D in market; 94% at import"
+          "note": "highest-priced D in market; 95% at import"
         },
         {
           "name": "Wikipedia",
@@ -1857,7 +1857,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/kansas-senate-election-leavenworth-county-winner",
-          "note": "highest-priced D in market; 41% at import"
+          "note": "highest-priced D in market; 24% at import"
         },
         {
           "name": "Wikipedia",
@@ -1879,7 +1879,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/kansas-senate-election-leavenworth-county-winner",
-          "note": "highest-priced R in market; 53% at import"
+          "note": "highest-priced R in market; 59% at import"
         },
         {
           "name": "Wikipedia",
@@ -2796,5 +2796,5 @@
     }
   ],
   "moments": [],
-  "imported_at": "2026-11-19T07:27:49.688Z"
+  "imported_at": "2026-11-19T20:39:11.649Z"
 }
