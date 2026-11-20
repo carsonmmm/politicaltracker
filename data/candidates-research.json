@@ -847,7 +847,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/new-york-governor-election-nassau-county-winner",
-          "note": "highest-priced D in market; 95% at import"
+          "note": "highest-priced D in market; 93% at import"
         },
         {
           "name": "Wikipedia",
@@ -1356,16 +1356,21 @@
       "raceId": "H-MN-01",
       "name": "Brad Finstad",
       "party": "R",
-      "incumbent": false,
+      "incumbent": true,
+      "bioguide_id": "F000475",
       "listing_only": true,
       "researched_at": "2026-11-20",
-      "source": "Polymarket market listing",
+      "source": "Polymarket market listing + VoteView (119th Congress member list)",
       "source_url": "https://polymarket.com/event/mn-01-house-election-winner",
       "sources": [
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/mn-01-house-election-winner",
           "note": "highest-priced R in market; 3% at import"
+        },
+        {
+          "name": "VoteView (119th Congress member list)",
+          "url": "https://voteview.com/person/22167"
         }
       ]
     },
@@ -1390,16 +1395,21 @@
       "raceId": "H-NC-05",
       "name": "Virginia Foxx",
       "party": "R",
-      "incumbent": false,
+      "incumbent": true,
+      "bioguide_id": "F000450",
       "listing_only": true,
       "researched_at": "2026-11-20",
-      "source": "Polymarket market listing",
+      "source": "Polymarket market listing + VoteView (119th Congress member list)",
       "source_url": "https://polymarket.com/event/nc-05-house-election-winner",
       "sources": [
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/nc-05-house-election-winner",
           "note": "highest-priced R in market; 1% at import"
+        },
+        {
+          "name": "VoteView (119th Congress member list)",
+          "url": "https://voteview.com/person/20521"
         }
       ]
     },
@@ -1416,7 +1426,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/nc-10-house-election-winner",
-          "note": "highest-priced D in market; 1% at import"
+          "note": "highest-priced D in market; 0% at import"
         }
       ]
     },
@@ -1424,16 +1434,21 @@
       "raceId": "H-NC-10",
       "name": "Pat Harrigan",
       "party": "R",
-      "incumbent": false,
+      "incumbent": true,
+      "bioguide_id": "H001101",
       "listing_only": true,
       "researched_at": "2026-11-20",
-      "source": "Polymarket market listing",
+      "source": "Polymarket market listing + VoteView (119th Congress member list)",
       "source_url": "https://polymarket.com/event/nc-10-house-election-winner",
       "sources": [
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/nc-10-house-election-winner",
-          "note": "highest-priced R in market; 99% at import"
+          "note": "highest-priced R in market; 100% at import"
+        },
+        {
+          "name": "VoteView (119th Congress member list)",
+          "url": "https://voteview.com/person/22524"
         }
       ]
     },
@@ -1458,16 +1473,21 @@
       "raceId": "S-AK",
       "name": "Dan S. Sullivan",
       "party": "R",
-      "incumbent": false,
+      "incumbent": true,
+      "bioguide_id": "S001198",
       "listing_only": true,
       "researched_at": "2026-11-20",
-      "source": "Wikipedia",
+      "source": "Wikipedia + VoteView (119th Congress member list)",
       "source_url": "https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Alaska",
       "sources": [
         {
           "name": "Wikipedia",
           "url": "https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Alaska",
           "note": "nominee in infobox; not in the market listing"
+        },
+        {
+          "name": "VoteView (119th Congress member list)",
+          "url": "https://voteview.com/person/41500"
         }
       ]
     },
@@ -1509,16 +1529,21 @@
       "raceId": "S-AR",
       "name": "Tom Cotton",
       "party": "R",
-      "incumbent": false,
+      "incumbent": true,
+      "bioguide_id": "C001095",
       "listing_only": true,
       "researched_at": "2026-11-20",
-      "source": "Wikipedia",
+      "source": "Wikipedia + VoteView (119th Congress member list)",
       "source_url": "https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Arkansas",
       "sources": [
         {
           "name": "Wikipedia",
           "url": "https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Arkansas",
           "note": "nominee in infobox; not in the market listing"
+        },
+        {
+          "name": "VoteView (119th Congress member list)",
+          "url": "https://voteview.com/person/21301"
         }
       ]
     },
@@ -1543,16 +1568,21 @@
       "raceId": "S-CO",
       "name": "John Hickenlooper",
       "party": "D",
-      "incumbent": false,
+      "incumbent": true,
+      "bioguide_id": "H000273",
       "listing_only": true,
       "researched_at": "2026-11-20",
-      "source": "Wikipedia",
+      "source": "Wikipedia + VoteView (119th Congress member list)",
       "source_url": "https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Colorado",
       "sources": [
         {
           "name": "Wikipedia",
           "url": "https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Colorado",
           "note": "nominee in infobox; not in the market listing"
+        },
+        {
+          "name": "VoteView (119th Congress member list)",
+          "url": "https://voteview.com/person/42101"
         }
       ]
     },
@@ -1577,16 +1607,21 @@
       "raceId": "S-DE",
       "name": "Chris Coons",
       "party": "D",
-      "incumbent": false,
+      "incumbent": true,
+      "bioguide_id": "C001088",
       "listing_only": true,
       "researched_at": "2026-11-20",
-      "source": "Wikipedia",
+      "source": "Wikipedia + VoteView (119th Congress member list)",
       "source_url": "https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Delaware",
       "sources": [
         {
           "name": "Wikipedia",
           "url": "https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Delaware",
           "note": "nominee in infobox; not in the market listing"
+        },
+        {
+          "name": "VoteView (119th Congress member list)",
+          "url": "https://voteview.com/person/40916"
         }
       ]
     },
@@ -1611,16 +1646,21 @@
       "raceId": "S-FL",
       "name": "Ashley Moody",
       "party": "R",
-      "incumbent": false,
+      "incumbent": true,
+      "bioguide_id": "M001244",
       "listing_only": true,
       "researched_at": "2026-11-20",
-      "source": "Wikipedia",
+      "source": "Wikipedia + VoteView (119th Congress member list)",
       "source_url": "https://en.wikipedia.org/wiki/2026_United_States_Senate_special_election_in_Florida",
       "sources": [
         {
           "name": "Wikipedia",
           "url": "https://en.wikipedia.org/wiki/2026_United_States_Senate_special_election_in_Florida",
           "note": "nominee in infobox; not in the market listing"
+        },
+        {
+          "name": "VoteView (119th Congress member list)",
+          "url": "https://voteview.com/person/42506"
         }
       ]
     },
@@ -1645,16 +1685,21 @@
       "raceId": "S-GA",
       "name": "Jon Ossoff",
       "party": "D",
-      "incumbent": false,
+      "incumbent": true,
+      "bioguide_id": "O000174",
       "listing_only": true,
       "researched_at": "2026-11-20",
-      "source": "Wikipedia",
+      "source": "Wikipedia + VoteView (119th Congress member list)",
       "source_url": "https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Georgia",
       "sources": [
         {
           "name": "Wikipedia",
           "url": "https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Georgia",
           "note": "nominee in infobox; not in the market listing"
+        },
+        {
+          "name": "VoteView (119th Congress member list)",
+          "url": "https://voteview.com/person/42103"
         }
       ]
     },
@@ -1713,16 +1758,21 @@
       "raceId": "S-ID",
       "name": "Jim Risch",
       "party": "R",
-      "incumbent": false,
+      "incumbent": true,
+      "bioguide_id": "R000584",
       "listing_only": true,
       "researched_at": "2026-11-20",
-      "source": "Wikipedia",
+      "source": "Wikipedia + VoteView (119th Congress member list)",
       "source_url": "https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Idaho",
       "sources": [
         {
           "name": "Wikipedia",
           "url": "https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Idaho",
           "note": "nominee in infobox; not in the market listing"
+        },
+        {
+          "name": "VoteView (119th Congress member list)",
+          "url": "https://voteview.com/person/40902"
         }
       ]
     },
@@ -1807,7 +1857,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/kansas-senate-election-leavenworth-county-winner",
-          "note": "highest-priced D in market; 41% at import"
+          "note": "highest-priced D in market; 24% at import"
         },
         {
           "name": "Wikipedia",
@@ -1819,20 +1869,25 @@
       "raceId": "S-KS",
       "name": "Roger Marshall",
       "party": "R",
-      "incumbent": false,
+      "incumbent": true,
+      "bioguide_id": "M001198",
       "listing_only": true,
       "researched_at": "2026-11-20",
-      "source": "Polymarket market listing + Wikipedia",
+      "source": "Polymarket market listing + Wikipedia + VoteView (119th Congress member list)",
       "source_url": "https://polymarket.com/event/kansas-senate-election-leavenworth-county-winner",
       "sources": [
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/kansas-senate-election-leavenworth-county-winner",
-          "note": "highest-priced R in market; 56% at import"
+          "note": "highest-priced R in market; 61% at import"
         },
         {
           "name": "Wikipedia",
           "url": "https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Kansas"
+        },
+        {
+          "name": "VoteView (119th Congress member list)",
+          "url": "https://voteview.com/person/21734"
         }
       ]
     },
@@ -1908,16 +1963,21 @@
       "raceId": "S-MA",
       "name": "Ed Markey",
       "party": "D",
-      "incumbent": false,
+      "incumbent": true,
+      "bioguide_id": "M000133",
       "listing_only": true,
       "researched_at": "2026-11-20",
-      "source": "Wikipedia",
+      "source": "Wikipedia + VoteView (119th Congress member list)",
       "source_url": "https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Massachusetts",
       "sources": [
         {
           "name": "Wikipedia",
           "url": "https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Massachusetts",
           "note": "nominee in infobox; not in the market listing"
+        },
+        {
+          "name": "VoteView (119th Congress member list)",
+          "url": "https://voteview.com/person/14435"
         }
       ]
     },
@@ -1959,16 +2019,21 @@
       "raceId": "S-ME",
       "name": "Susan Collins",
       "party": "R",
-      "incumbent": false,
+      "incumbent": true,
+      "bioguide_id": "C001035",
       "listing_only": true,
       "researched_at": "2026-11-20",
-      "source": "Wikipedia",
+      "source": "Wikipedia + VoteView (119th Congress member list)",
       "source_url": "https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Maine",
       "sources": [
         {
           "name": "Wikipedia",
           "url": "https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Maine",
           "note": "nominee in infobox; not in the market listing"
+        },
+        {
+          "name": "VoteView (119th Congress member list)",
+          "url": "https://voteview.com/person/49703"
         }
       ]
     },
@@ -2061,16 +2126,21 @@
       "raceId": "S-MS",
       "name": "Cindy Hyde-Smith",
       "party": "R",
-      "incumbent": false,
+      "incumbent": true,
+      "bioguide_id": "H001079",
       "listing_only": true,
       "researched_at": "2026-11-20",
-      "source": "Wikipedia",
+      "source": "Wikipedia + VoteView (119th Congress member list)",
       "source_url": "https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Mississippi",
       "sources": [
         {
           "name": "Wikipedia",
           "url": "https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Mississippi",
           "note": "nominee in infobox; not in the market listing"
+        },
+        {
+          "name": "VoteView (119th Congress member list)",
+          "url": "https://voteview.com/person/41707"
         }
       ]
     },
@@ -2163,16 +2233,21 @@
       "raceId": "S-NE",
       "name": "Pete Ricketts",
       "party": "R",
-      "incumbent": false,
+      "incumbent": true,
+      "bioguide_id": "R000618",
       "listing_only": true,
       "researched_at": "2026-11-20",
-      "source": "Wikipedia",
+      "source": "Wikipedia + VoteView (119th Congress member list)",
       "source_url": "https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Nebraska",
       "sources": [
         {
           "name": "Wikipedia",
           "url": "https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Nebraska",
           "note": "nominee in infobox; not in the market listing"
+        },
+        {
+          "name": "VoteView (119th Congress member list)",
+          "url": "https://voteview.com/person/42302"
         }
       ]
     },
@@ -2231,16 +2306,21 @@
       "raceId": "S-NJ",
       "name": "Cory Booker",
       "party": "D",
-      "incumbent": false,
+      "incumbent": true,
+      "bioguide_id": "B001288",
       "listing_only": true,
       "researched_at": "2026-11-20",
-      "source": "Wikipedia",
+      "source": "Wikipedia + VoteView (119th Congress member list)",
       "source_url": "https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_New_Jersey",
       "sources": [
         {
           "name": "Wikipedia",
           "url": "https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_New_Jersey",
           "note": "nominee in infobox; not in the market listing"
+        },
+        {
+          "name": "VoteView (119th Congress member list)",
+          "url": "https://voteview.com/person/41308"
         }
       ]
     },
@@ -2265,16 +2345,21 @@
       "raceId": "S-NM",
       "name": "Ben Ray Luján",
       "party": "D",
-      "incumbent": false,
+      "incumbent": true,
+      "bioguide_id": "L000570",
       "listing_only": true,
       "researched_at": "2026-11-20",
-      "source": "Wikipedia",
+      "source": "Wikipedia + VoteView (119th Congress member list)",
       "source_url": "https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_New_Mexico",
       "sources": [
         {
           "name": "Wikipedia",
           "url": "https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_New_Mexico",
           "note": "nominee in infobox; not in the market listing"
+        },
+        {
+          "name": "VoteView (119th Congress member list)",
+          "url": "https://voteview.com/person/20932"
         }
       ]
     },
@@ -2316,16 +2401,21 @@
       "raceId": "S-OH",
       "name": "Jon Husted",
       "party": "R",
-      "incumbent": false,
+      "incumbent": true,
+      "bioguide_id": "H001104",
       "listing_only": true,
       "researched_at": "2026-11-20",
-      "source": "Wikipedia",
+      "source": "Wikipedia + VoteView (119th Congress member list)",
       "source_url": "https://en.wikipedia.org/wiki/2026_United_States_Senate_special_election_in_Ohio",
       "sources": [
         {
           "name": "Wikipedia",
           "url": "https://en.wikipedia.org/wiki/2026_United_States_Senate_special_election_in_Ohio",
           "note": "nominee in infobox; not in the market listing"
+        },
+        {
+          "name": "VoteView (119th Congress member list)",
+          "url": "https://voteview.com/person/42505"
         }
       ]
     },
@@ -2367,16 +2457,21 @@
       "raceId": "S-OR",
       "name": "Jeff Merkley",
       "party": "D",
-      "incumbent": false,
+      "incumbent": true,
+      "bioguide_id": "M001176",
       "listing_only": true,
       "researched_at": "2026-11-20",
-      "source": "Wikipedia",
+      "source": "Wikipedia + VoteView (119th Congress member list)",
       "source_url": "https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Oregon",
       "sources": [
         {
           "name": "Wikipedia",
           "url": "https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Oregon",
           "note": "nominee in infobox; not in the market listing"
+        },
+        {
+          "name": "VoteView (119th Congress member list)",
+          "url": "https://voteview.com/person/40908"
         }
       ]
     },
@@ -2401,16 +2496,21 @@
       "raceId": "S-RI",
       "name": "Jack Reed",
       "party": "D",
-      "incumbent": false,
+      "incumbent": true,
+      "bioguide_id": "R000122",
       "listing_only": true,
       "researched_at": "2026-11-20",
-      "source": "Wikipedia",
+      "source": "Wikipedia + VoteView (119th Congress member list)",
       "source_url": "https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Rhode_Island",
       "sources": [
         {
           "name": "Wikipedia",
           "url": "https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Rhode_Island",
           "note": "nominee in infobox; not in the market listing"
+        },
+        {
+          "name": "VoteView (119th Congress member list)",
+          "url": "https://voteview.com/person/29142"
         }
       ]
     },
@@ -2452,16 +2552,21 @@
       "raceId": "S-SC",
       "name": "Darline Graham",
       "party": "R",
-      "incumbent": false,
+      "incumbent": true,
+      "bioguide_id": "G000359",
       "listing_only": true,
       "researched_at": "2026-11-20",
-      "source": "Wikipedia",
+      "source": "Wikipedia + VoteView (119th Congress member list)",
       "source_url": "https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_South_Carolina",
       "sources": [
         {
           "name": "Wikipedia",
           "url": "https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_South_Carolina",
           "note": "nominee in infobox; not in the market listing"
+        },
+        {
+          "name": "VoteView (119th Congress member list)",
+          "url": "https://voteview.com/person/29566"
         }
       ]
     },
@@ -2469,16 +2574,21 @@
       "raceId": "S-SD",
       "name": "Mike Rounds",
       "party": "R",
-      "incumbent": false,
+      "incumbent": true,
+      "bioguide_id": "R000605",
       "listing_only": true,
       "researched_at": "2026-11-20",
-      "source": "Wikipedia",
+      "source": "Wikipedia + VoteView (119th Congress member list)",
       "source_url": "https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_South_Dakota",
       "sources": [
         {
           "name": "Wikipedia",
           "url": "https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_South_Dakota",
           "note": "nominee in infobox; not in the market listing"
+        },
+        {
+          "name": "VoteView (119th Congress member list)",
+          "url": "https://voteview.com/person/41505"
         }
       ]
     },
@@ -2503,16 +2613,21 @@
       "raceId": "S-TN",
       "name": "Bill Hagerty",
       "party": "R",
-      "incumbent": false,
+      "incumbent": true,
+      "bioguide_id": "H000601",
       "listing_only": true,
       "researched_at": "2026-11-20",
-      "source": "Wikipedia",
+      "source": "Wikipedia + VoteView (119th Congress member list)",
       "source_url": "https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Tennessee",
       "sources": [
         {
           "name": "Wikipedia",
           "url": "https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Tennessee",
           "note": "nominee in infobox; not in the market listing"
+        },
+        {
+          "name": "VoteView (119th Congress member list)",
+          "url": "https://voteview.com/person/42100"
         }
       ]
     },
@@ -2571,16 +2686,21 @@
       "raceId": "S-VA",
       "name": "Mark Warner",
       "party": "D",
-      "incumbent": false,
+      "incumbent": true,
+      "bioguide_id": "W000805",
       "listing_only": true,
       "researched_at": "2026-11-20",
-      "source": "Wikipedia",
+      "source": "Wikipedia + VoteView (119th Congress member list)",
       "source_url": "https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Virginia",
       "sources": [
         {
           "name": "Wikipedia",
           "url": "https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Virginia",
           "note": "nominee in infobox; not in the market listing"
+        },
+        {
+          "name": "VoteView (119th Congress member list)",
+          "url": "https://voteview.com/person/40909"
         }
       ]
     },
@@ -2605,16 +2725,21 @@
       "raceId": "S-WV",
       "name": "Shelley Moore Capito",
       "party": "R",
-      "incumbent": false,
+      "incumbent": true,
+      "bioguide_id": "C001047",
       "listing_only": true,
       "researched_at": "2026-11-20",
-      "source": "Wikipedia",
+      "source": "Wikipedia + VoteView (119th Congress member list)",
       "source_url": "https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_West_Virginia",
       "sources": [
         {
           "name": "Wikipedia",
           "url": "https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_West_Virginia",
           "note": "nominee in infobox; not in the market listing"
+        },
+        {
+          "name": "VoteView (119th Congress member list)",
+          "url": "https://voteview.com/person/20146"
         }
       ]
     },
@@ -2671,5 +2796,5 @@
     }
   ],
   "moments": [],
-  "imported_at": "2026-11-20T07:18:20.582Z"
+  "imported_at": "2026-11-20T20:23:25.667Z"
 }
