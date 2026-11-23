@@ -847,7 +847,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/new-york-governor-election-nassau-county-winner",
-          "note": "highest-priced D in market; 95% at import"
+          "note": "highest-priced D in market; 94% at import"
         },
         {
           "name": "Wikipedia",
@@ -868,7 +868,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/new-york-governor-election-nassau-county-winner",
-          "note": "highest-priced R in market; 2% at import"
+          "note": "highest-priced R in market; 1% at import"
         },
         {
           "name": "Wikipedia",
@@ -1348,7 +1348,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/mn-01-house-election-winner",
-          "note": "highest-priced D in market; 98% at import"
+          "note": "highest-priced D in market; 99% at import"
         }
       ]
     },
@@ -1366,7 +1366,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/mn-01-house-election-winner",
-          "note": "highest-priced R in market; 2% at import"
+          "note": "highest-priced R in market; 1% at import"
         },
         {
           "name": "VoteView (119th Congress member list)",
@@ -1779,7 +1779,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/kansas-senate-election-leavenworth-county-winner",
-          "note": "highest-priced D in market; 35% at import"
+          "note": "highest-priced D in market; 21% at import"
         },
         {
           "name": "Wikipedia",
@@ -1801,7 +1801,7 @@
         {
           "name": "Polymarket market listing",
           "url": "https://polymarket.com/event/kansas-senate-election-leavenworth-county-winner",
-          "note": "highest-priced R in market; 57% at import"
+          "note": "highest-priced R in market; 65% at import"
         },
         {
           "name": "Wikipedia",
@@ -2718,5 +2718,5 @@
     }
   ],
   "moments": [],
-  "imported_at": "2026-11-23T07:41:07.750Z"
+  "imported_at": "2026-11-23T23:55:26.222Z"
 }
