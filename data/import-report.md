@@ -1,4 +1,4 @@
-# Import report — 2026-11-23T23:55:26.222Z
+# Import report — 2026-11-24T09:56:00.531Z
 
 Polymarket: 6 races with a winner market.
 Incumbents marked from VoteView: 23
