@@ -1,4 +1,4 @@
-# Import report — 2026-11-24T22:28:12.506Z
+# Import report — 2026-11-25T08:37:14.226Z
 
 Polymarket: 6 races with a winner market.
 Incumbents marked from VoteView: 23
@@ -11,7 +11,7 @@ Senate baseline from senate.gov: 100 senators; not up: D 32, R 31, I 2.
 
 Names skipped because no source gave a party (2):
 - G-CA: "Julieta Ramírez Padilla" 64% — no party label
-- G-CA: "Ismael Burgueño Ruiz" 15% — no party label
+- G-CA: "Ismael Burgueño Ruiz" 11% — no party label
 
 Market vs. Wikipedia disagreements (148):
 - S-AK: Wikipedia lists Mary Peltola (D); the market does not
